@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Models Gallery - PRMPT Portfolio</title>
+  <meta name="description" content="Explore photorealistic 3D product visualizers and interactive models in full 360°." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* 3D Showcase Custom Glassmorphism UI */
+    .threed-page-ui {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      font-family: var(--font-sans);
+    }
+
+    /* Top Left Header */
+    .threed-brand {
+      position: fixed;
+      top: 2rem;
+      left: 2rem;
+      z-index: 20;
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .threed-brand__title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #fff;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+    .threed-brand__subtitle {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+    }
+
+    /* Floating Model Details Card (Left) */
+    .model-info-card {
+      position: fixed;
+      left: 2.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 380px;
+      max-width: calc(100vw - 4rem);
+      padding: 2.25rem;
+      border-radius: 24px;
+      background: rgba(15, 15, 18, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
+      z-index: 20;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .model-info-card:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7);
+    }
+
+    .model-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .model-badge {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      border-radius: 100px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .model-badge--new {
+      background: linear-gradient(135deg, #ff3b30, #ff9500);
+      color: #fff;
+      border: none;
+      box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
+      animation: pulseGlow 2s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      from { box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); }
+      to { box-shadow: 0 6px 25px rgba(255, 149, 0, 0.8); }
+    }
+
+    .model-title {
+      font-family: var(--font-display);
+      font-size: 2.25rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .model-subtitle {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+    .model-desc {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.75);
+      margin-bottom: 1.75rem;
+    }
+    .model-hint {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.5);
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .model-hint svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+    }
+
+    /* Floating Toolbar (Right Top) */
+    .threed-toolbar {
+      position: fixed;
+      top: 2rem;
+      right: 6rem;
+      z-index: 20;
+      pointer-events: auto;
+      display: flex;
+      gap: 0.75rem;
+    }
+    .threed-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.1rem;
+      border-radius: 100px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .threed-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: translateY(-2px);
+    }
+    .threed-btn.active {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    /* Floating Model Selector Carousel (Bottom) */
+    .carousel-container {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(92vw, 1100px);
+      z-index: 20;
+      pointer-events: auto;
+    }
+    .carousel-track {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 24px;
+      background: rgba(12, 12, 15, 0.75);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .carousel-track::-webkit-scrollbar { display: none; }
+
+    .carousel-item {
+      flex: 0 0 160px;
+      padding: 0.85rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      user-select: none;
+    }
+    .carousel-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-4px);
+    }
+    .carousel-item.active {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 8px 25px rgba(255, 255, 255, 0.15);
+    }
+    .carousel-item__tag {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 100px;
+      background: linear-gradient(135deg, #ff3b30, #ff9500);
+      color: #fff;
+      font-size: 0.55rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .carousel-item__num {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.4);
+      margin-bottom: 0.35rem;
+    }
+    .carousel-item__title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.2rem;
+    }
+    .carousel-item__sub {
+      font-size: 0.65rem;
+      color: rgba(255, 255, 255, 0.5);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+
+
+    @media (max-width: 900px) {
+      .model-info-card {
+        top: auto;
+        bottom: 7.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100vw - 3rem);
+        padding: 1.5rem;
+      }
+      .model-title { font-size: 1.75rem; }
+      .model-desc { display: none; }
+      .threed-toolbar {
+        top: auto;
+        bottom: 1.5rem;
+        right: 1.5rem;
+      }
+      .carousel-container {
+        bottom: 1rem;
+        width: 100vw;
+        padding: 0 1rem;
+      }
+    }
+  </style>
+</head>
+<body class="threed-page">
+  <div id="error-log" style="position:fixed;top:50%;left:0;color:red;z-index:9999;"></div>
+  <script>window.onerror = function(msg) { document.getElementById('error-log').innerText += msg + '\n'; };</script>
+
+  <!-- 3D WebGL Canvas -->
+  <canvas id="gallery-canvas"></canvas>
+
+  <!-- Side Navigation Hamburger Button -->
+  <button id="menu-btn" style="position: fixed; top: 2rem; right: 2rem; z-index: 101; mix-blend-mode: difference; background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+    <div style="width: 32px; height: 2px; background: white; transition: all 0.3s;" id="menu-line-1"></div>
+    <div style="width: 24px; height: 2px; background: white; transition: all 0.3s;" id="menu-line-2"></div>
+  </button>
+
+  <!-- Side Menu Overlay -->
+  <div id="side-menu" style="position: fixed; inset: 0; pointer-events: none; z-index: 100; display: flex; justify-content: flex-end;">
+    <div id="menu-backdrop" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.5s;"></div>
+    
+    <div id="menu-panel" style="position: relative; width: 100%; max-width: 600px; background: white; height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 0 3rem; transform: translateX(100%); transition: transform 0.7s cubic-bezier(0.25, 1, 0.25, 1);">
+      <button id="menu-close-btn" style="position: absolute; top: 2rem; right: 2rem; width: 40px; height: 40px; background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="width: 32px; height: 2px; background: black; transform: rotate(45deg) translateY(4px);"></div>
+        <div style="width: 32px; height: 2px; background: black; transform: rotate(-45deg) translateY(-4px);"></div>
+      </button>
+
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <a href="/" class="menu-link" style="font-family: 'Inter Tight', sans-serif; font-weight: 700; font-size: clamp(2.25rem, 5vw, 3.75rem); text-transform: uppercase; letter-spacing: -0.05em; color: black; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#777'" onmouseout="this.style.color='black'">HOME</a>
+        <a href="social.html" class="menu-link" style="font-family: 'Inter Tight', sans-serif; font-weight: 700; font-size: clamp(2.25rem, 5vw, 3.75rem); text-transform: uppercase; letter-spacing: -0.05em; color: black; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#777'" onmouseout="this.style.color='black'">SOCIAL MEDIA</a>
+        <a href="landscape.html" class="menu-link" style="font-family: 'Inter Tight', sans-serif; font-weight: 700; font-size: clamp(2.25rem, 5vw, 3.75rem); text-transform: uppercase; letter-spacing: -0.05em; color: black; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#777'" onmouseout="this.style.color='black'">WEBSITE</a>
+        <a href="/preview-3d" class="menu-link" style="font-family: 'Inter Tight', sans-serif; font-weight: 700; font-size: clamp(2.25rem, 5vw, 3.75rem); text-transform: uppercase; letter-spacing: -0.05em; color: black; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#777'" onmouseout="this.style.color='black'">PREVIEW 3D</a>
+      </div>
+
+      <div style="position: absolute; bottom: 3rem; left: 3rem; font-family: 'Inter Tight', sans-serif; font-weight: 500; font-size: 0.875rem; letter-spacing: 0.1em; text-transform: uppercase; color: black;">
+        PRMPT © 2026
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const menuBtn = document.getElementById('menu-btn');
+    const closeBtn = document.getElementById('menu-close-btn');
+    const sideMenu = document.getElementById('side-menu');
+    const backdrop = document.getElementById('menu-backdrop');
+    const panel = document.getElementById('menu-panel');
+    const menuLine1 = document.getElementById('menu-line-1');
+    const menuLine2 = document.getElementById('menu-line-2');
+
+    menuBtn.addEventListener('mouseenter', () => {
+      menuLine1.style.width = '40px';
+      menuLine2.style.width = '32px';
+      menuBtn.style.opacity = '0.7';
+    });
+    menuBtn.addEventListener('mouseleave', () => {
+      menuLine1.style.width = '32px';
+      menuLine2.style.width = '24px';
+      menuBtn.style.opacity = '1';
+    });
+
+    function openMenu() {
+      sideMenu.style.pointerEvents = 'auto';
+      backdrop.style.opacity = '1';
+      panel.style.transform = 'translateX(0)';
+      menuBtn.style.display = 'none';
+    }
+
+    function closeMenu() {
+      backdrop.style.opacity = '0';
+      panel.style.transform = 'translateX(100%)';
+      menuBtn.style.display = 'flex';
+      setTimeout(() => {
+        sideMenu.style.pointerEvents = 'none';
+      }, 700);
+    }
+
+    menuBtn.addEventListener('click', openMenu);
+    closeBtn.addEventListener('click', closeMenu);
+    backdrop.addEventListener('click', closeMenu);
+  </script>
+
+  <!-- Top Brand Info -->
+  <div class="threed-brand">
+    <a href="/" class="threed-brand__title">PRMPT 3D</a>
+    <span class="threed-brand__subtitle">Interactive 3D Visualizer</span>
+  </div>
+
+  <!-- Top Toolbar -->
+  <div class="threed-toolbar">
+    <button class="threed-btn active" id="btn-autorotate">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+      </svg>
+      Auto-Rotate
+    </button>
+    <button class="threed-btn" id="btn-reset">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+      Reset View
+    </button>
+  </div>
+
+  <!-- Left Model Info Card -->
+  <div class="model-info-card" id="model-card">
+    <div class="model-badge-row">
+      <span class="model-badge" id="card-counter">01 / 08</span>
+      <span class="model-badge model-badge--new" id="card-new-tag" style="display:none;">NEW MODEL</span>
+    </div>
+    <h1 class="model-title" id="card-title">EARPHONE</h1>
+    <div class="model-subtitle" id="card-subtitle">WIRELESS AUDIO DESIGN</div>
+    <div class="model-desc" id="card-desc">High-fidelity wireless earphone 3D product visualizer featuring ergonomic form factor and metallic finish.</div>
+    <div class="model-hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+      <span>Drag to rotate • Scroll to zoom</span>
+    </div>
+  </div>
+
+  <!-- Bottom Model Selector Carousel -->
+  <div class="carousel-container">
+    <div class="carousel-track" id="carousel-track">
+      <!-- Carousel Cards injected via 3d.js -->
+    </div>
+  </div>
+
+
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="3d.js"></script>
+  <script src="transition.js"></script>
+</body>
+</html>

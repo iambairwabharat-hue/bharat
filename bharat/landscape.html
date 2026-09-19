@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Website Gallery - PRMPT Portfolio</title>
+  <meta name="description" content="View our interactive landscape and website design portfolio." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body><div id='error-log' style='position:fixed;top:50%;left:0;color:red;z-index:9999;'></div><script>window.onerror = function(msg) { document.getElementById('error-log').innerText += msg + '\n'; };</script>
+  <canvas id="gallery-canvas"></canvas>
+
+  <!-- Hamburger Menu Button -->
+  <button id="menu-btn" style="position: fixed; top: 2rem; right: 2rem; z-index: 101; mix-blend-mode: difference; background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+    <div style="width: 32px; height: 2px; background: white; transition: all 0.3s;" id="menu-line-1"></div>
+    <div style="width: 24px; height: 2px; background: white; transition: all 0.3s;" id="menu-line-2"></div>
+  </button>
+
+  <!-- Side Menu Overlay -->
+  <div id="side-menu" style="position: fixed; inset: 0; pointer-events: none; z-index: 100; display: flex; justify-content: flex-end;">
+    <div id="menu-backdrop" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.5s;"></div>
+    
+    <div id="menu-panel" style="position: relative; width: 100%; max-width: 600px; background: white; height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 0 3rem; transform: translateX(100%); transition: transform 0.7s cubic-bezier(0.25, 1, 0.25, 1);">
+      <button id="menu-close-btn" style="position: absolute; top: 2rem; right: 2rem; width: 40px; height: 40px; background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="width: 32px; height: 2px; background: black; transform: rotate(45deg) translateY(4px);"></div>
+        <div style="width: 32px; height: 2px; background: black; transform: rotate(-45deg) translateY(-4px);"></div>
+      </button>
+
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <a href="/" class="menu-link" style="font-family: 'Inter Tight', sans-serif; font-weight: 700; font-size: clamp(2.25rem, 5vw, 3.75rem); text-transform: uppercase; letter-spacing: -0.05em; color: black; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#777'" onmouseout="this.style.color='black'">HOME</a>
+        <a href="social.html" class="menu-link" style="font-family: 'Inter Tight', sans-serif; font-weight: 700; font-size: clamp(2.25rem, 5vw, 3.75rem); text-transform: uppercase; letter-spacing: -0.05em; color: black; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#777'" onmouseout="this.style.color='black'">SOCIAL MEDIA</a>
+        <a href="landscape.html" class="menu-link" style="font-family: 'Inter Tight', sans-serif; font-weight: 700; font-size: clamp(2.25rem, 5vw, 3.75rem); text-transform: uppercase; letter-spacing: -0.05em; color: black; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#777'" onmouseout="this.style.color='black'">WEBSITE</a>
+        <a href="packaging.html" class="menu-link" style="font-family: 'Inter Tight', sans-serif; font-weight: 700; font-size: clamp(2.25rem, 5vw, 3.75rem); text-transform: uppercase; letter-spacing: -0.05em; color: black; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#777'" onmouseout="this.style.color='black'">PACKAGING</a>
+      </div>
+
+      <div style="position: absolute; bottom: 3rem; left: 3rem; font-family: 'Inter Tight', sans-serif; font-weight: 500; font-size: 0.875rem; letter-spacing: 0.1em; text-transform: uppercase; color: black;">
+        PRMPT © 2026
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const menuBtn = document.getElementById('menu-btn');
+    const closeBtn = document.getElementById('menu-close-btn');
+    const sideMenu = document.getElementById('side-menu');
+    const backdrop = document.getElementById('menu-backdrop');
+    const panel = document.getElementById('menu-panel');
+    const menuLine1 = document.getElementById('menu-line-1');
+    const menuLine2 = document.getElementById('menu-line-2');
+
+    menuBtn.addEventListener('mouseenter', () => {
+      menuLine1.style.width = '40px';
+      menuLine2.style.width = '32px';
+      menuBtn.style.opacity = '0.7';
+    });
+    menuBtn.addEventListener('mouseleave', () => {
+      menuLine1.style.width = '32px';
+      menuLine2.style.width = '24px';
+      menuBtn.style.opacity = '1';
+    });
+
+    function openMenu() {
+      sideMenu.style.pointerEvents = 'auto';
+      backdrop.style.opacity = '1';
+      panel.style.transform = 'translateX(0)';
+      menuBtn.style.display = 'none';
+    }
+
+    function closeMenu() {
+      backdrop.style.opacity = '0';
+      panel.style.transform = 'translateX(100%)';
+      menuBtn.style.display = 'flex';
+      setTimeout(() => {
+        sideMenu.style.pointerEvents = 'none';
+      }, 700);
+    }
+
+    menuBtn.addEventListener('click', openMenu);
+    closeBtn.addEventListener('click', closeMenu);
+    backdrop.addEventListener('click', closeMenu);
+  </script>
+
+  <div class="labels-layer" id="labels-layer"></div>
+
+  <div class="scroll-hint" id="scroll-hint">
+    <div class="scroll-hint__icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </div>
+    <span class="scroll-hint__text">Scroll or drag to explore</span>
+  </div>
+
+  <footer class="footer">
+    <span class="footer__counter" id="counter">01 / 20</span>
+    <span class="footer__tag">Spiral Portfolio</span>
+  </footer>
+
+  <!-- Detail View Overlay -->
+  <div class="detail-view hidden" id="detail-view">
+    <button class="detail-view__close" id="close-detail">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+    <div class="detail-view__left">
+      <div class="detail-view__kicker">EXHIBITION</div>
+      <h1 class="detail-view__title" id="detail-title"></h1>
+      <p class="detail-view__desc" id="detail-desc"></p>
+      
+      <div class="detail-view__meta">
+        <div class="meta-item">
+          <span class="meta-label">Client</span>
+          <span class="meta-value">TQS Brand</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Role</span>
+          <span class="meta-value">Photography</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Year</span>
+          <span class="meta-value">2026</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="detail-view__right" id="detail-scroll-wrapper">
+      <div class="detail-view__scroll-content" id="detail-scroll-content">
+        <div class="detail-view__grid" id="detail-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Iframe Lightbox Overlay -->
+  <div class="iframe-lightbox hidden" id="iframe-lightbox">
+    <button class="iframe-lightbox__close" id="close-iframe">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+    <div class="iframe-lightbox__content">
+      <!-- Iframes are injected and preloaded by JS -->
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+  <script src="landscape.js"></script>
+  <script src="transition.js"></script>
+</body>
+</html>
