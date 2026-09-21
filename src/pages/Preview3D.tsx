@@ -6,7 +6,6 @@ import SideMenu from '../components/SideMenu';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Link } from 'react-router-dom';
-import Lenis from 'lenis';
 import { useAudio } from '../context/AudioContext';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -36,9 +35,6 @@ export default function Preview3D() {
   const { playHover, playClick } = useAudio();
 
   useEffect(() => {
-    const lenis = new Lenis({ autoRaf: true, duration: 1.2 });
-    lenis.on('scroll', ScrollTrigger.update);
-
     // Animate every element with data-animate attribute
     const items = document.querySelectorAll('[data-animate]');
     items.forEach((el) => {
@@ -153,7 +149,6 @@ export default function Preview3D() {
 
     return () => {
       ScrollTrigger.getAll().forEach(t => t.kill());
-      lenis.destroy();
     };
   }, []);
 

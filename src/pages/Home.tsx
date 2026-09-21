@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Lenis from 'lenis';
 import CustomCursor from '../components/CustomCursor';
 import HeroSection from '../components/HeroSection';
 import GallerySection from '../components/GallerySection';
@@ -9,17 +8,18 @@ import StickyHeader from '../components/StickyHeader';
 import SideMenu from '../components/SideMenu';
 import type { StickyHeaderRef } from '../components/StickyHeader';
 import { useAudio } from '../context/AudioContext';
+import { useLenis } from '../context/LenisContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
   const { playHover, playClick } = useAudio();
+  const { stop, start } = useLenis();
   const scrollSpacerRef = useRef<HTMLDivElement>(null);
   const blackPanelRef = useRef<HTMLDivElement>(null);
   const galleryInnerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const stickyHeaderRef = useRef<StickyHeaderRef>(null);
-  const lenisRef = useRef<Lenis | null>(null);
   const isAnimationDoneRef = useRef(false);
 
   const [cols, setCols] = useState(3);
@@ -30,20 +30,20 @@ export default function Home() {
     window.scrollTo(0, 0);
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
+    stop();
 
     return () => {
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
+      start();
     };
-  }, []);
+  }, [stop, start]);
 
   const handleHeroComplete = () => {
     isAnimationDoneRef.current = true;
     document.body.style.overflow = '';
     document.documentElement.style.overflow = '';
-    if (lenisRef.current) {
-      lenisRef.current.start();
-    }
+    start();
   };
 
   // Responsive columns
@@ -60,20 +60,11 @@ export default function Home() {
   }, []);
 
   useLayoutEffect(() => {
-    // Initialize Lenis for smooth scrolling
-    const lenis = new Lenis({
-      autoRaf: true,
-      duration: 1.2,
-    });
-    lenisRef.current = lenis;
-
     if (!isAnimationDoneRef.current) {
-      lenis.stop();
+      stop();
     } else {
-      lenis.start();
+      start();
     }
-
-    lenis.on('scroll', ScrollTrigger.update);
 
     let rafId: number;
     let vh = window.innerHeight;
@@ -167,10 +158,8 @@ export default function Home() {
       window.removeEventListener('resize', calculateHeight);
       cancelAnimationFrame(rafId);
       st.kill();
-      lenis.destroy();
-      lenisRef.current = null;
     };
-  }, [cols]); // Re-run if cols changes since layout height changes
+  }, [cols, stop, start]); // Re-run if cols changes since layout height changes
 
   return (
     <div id="scroll-spacer" ref={scrollSpacerRef} className="relative select-none bg-white min-h-[100vh]">
