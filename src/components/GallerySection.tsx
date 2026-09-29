@@ -1,5 +1,8 @@
 import { forwardRef, useMemo, Fragment } from 'react';
 import ProductCard from './ProductCard';
+import AboutSection from './AboutSection';
+import ExperienceSection from './ExperienceSection';
+import Footer from './Footer';
 
 export const GALLERY_IMAGES = [
   { src: encodeURI("./home/mokups/11788a376563433844eea8179b784f74.webp"), aspect: "aspect-[4/5]", span: 1 },
@@ -62,7 +65,7 @@ const GallerySection = forwardRef<HTMLDivElement, GallerySectionProps>(
       >
         
         <div 
-          className="grid w-full gap-x-4 gap-y-16 lg:gap-x-8 lg:gap-y-32 px-4 lg:px-8 pb-[100vh] grid-flow-row-dense"
+          className="grid w-full gap-x-4 gap-y-16 lg:gap-x-8 lg:gap-y-32 px-4 lg:px-8 pb-32 grid-flow-row-dense"
 
           style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
         >
@@ -81,6 +84,11 @@ const GallerySection = forwardRef<HTMLDivElement, GallerySectionProps>(
             </Fragment>
           ))}
         </div>
+
+        {/* About & Experience sections after the gallery */}
+        <AboutSection />
+        <ExperienceSection />
+        <Footer />
       </div>
     );
   }

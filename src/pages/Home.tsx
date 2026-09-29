@@ -21,6 +21,7 @@ export default function Home() {
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const stickyHeaderRef = useRef<StickyHeaderRef>(null);
   const isAnimationDoneRef = useRef(false);
+  const stickyVisibleRef = useRef(false);
 
   const [cols, setCols] = useState(3);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -44,6 +45,9 @@ export default function Home() {
     document.body.style.overflow = '';
     document.documentElement.style.overflow = '';
     start();
+    // Reveal the sticky header now that hero is done
+    stickyVisibleRef.current = true;
+    stickyHeaderRef.current?.setVisible(true);
   };
 
   // Responsive columns
@@ -73,13 +77,20 @@ export default function Home() {
     const calculateHeight = () => {
       vh = window.innerHeight;
       if (galleryInnerRef.current && scrollSpacerRef.current) {
-        const wrapHeight = galleryInnerRef.current.getBoundingClientRect().height;
+        const wrapHeight = galleryInnerRef.current.scrollHeight;
         const maxScroll = Math.max(0, wrapHeight - vh);
         scrollSpacerRef.current.style.height = `${vh + maxScroll}px`;
       }
     };
-    
-    setTimeout(calculateHeight, 100);
+
+    // Recalculate whenever gallery content resizes (e.g. About/Experience sections render)
+    let resizeObs: ResizeObserver | null = null;
+    if (galleryInnerRef.current) {
+      resizeObs = new ResizeObserver(calculateHeight);
+      resizeObs.observe(galleryInnerRef.current);
+    }
+
+    setTimeout(calculateHeight, 300);
     window.addEventListener('resize', calculateHeight);
 
     // GSAP ScrollTrigger for black panel
@@ -130,6 +141,20 @@ export default function Home() {
         }
       }
 
+      // Hide sticky header once About section enters viewport
+      if (galleryInnerRef.current) {
+        const aboutEl = galleryInnerRef.current.querySelector('.about-section-start') as HTMLElement | null;
+        if (aboutEl) {
+          const rect = aboutEl.getBoundingClientRect();
+          // inGallery = About section top is still below viewport (> 60px from top)
+          const inGallery = rect.top > 60;
+          if (inGallery !== stickyVisibleRef.current) {
+            stickyVisibleRef.current = inGallery;
+            stickyHeaderRef.current?.setVisible(inGallery);
+          }
+        }
+      }
+
       // Card scaling
       if (scrollY > vh * 0.5 && scrollY < vh + maxScroll + vh) {
         cardRefs.current.forEach((card) => {
@@ -157,6 +182,7 @@ export default function Home() {
     return () => {
       window.removeEventListener('resize', calculateHeight);
       cancelAnimationFrame(rafId);
+      resizeObs?.disconnect();
       st.kill();
     };
   }, [cols, stop, start]); // Re-run if cols changes since layout height changes

@@ -3,6 +3,7 @@ import gsap from 'gsap';
 
 export interface StickyHeaderRef {
   setProgress: (p: number) => void;
+  setVisible: (visible: boolean) => void;
 }
 
 const StickyHeader = forwardRef<StickyHeaderRef, {}>((_, ref) => {
@@ -16,10 +17,21 @@ const StickyHeader = forwardRef<StickyHeaderRef, {}>((_, ref) => {
       if (tlRef.current) {
         tlRef.current.progress(p);
       }
+    },
+    setVisible: (visible: boolean) => {
+      if (containerRef.current) {
+        containerRef.current.style.transition = 'opacity 0.45s ease';
+        containerRef.current.style.opacity = visible ? '1' : '0';
+      }
     }
   }));
 
   useEffect(() => {
+    // Set initial opacity to 0 via direct style (not React prop so setVisible can override)
+    if (containerRef.current) {
+      containerRef.current.style.opacity = '0';
+    }
+
     // Create a paused timeline that will be driven by scroll progress
     const tl = gsap.timeline({ paused: true });
     tlRef.current = tl;
@@ -85,7 +97,7 @@ const StickyHeader = forwardRef<StickyHeaderRef, {}>((_, ref) => {
   const words = ["SOFTWARE", "SYSTEMS", "PLATFORMS", "WEB APPS"];
 
   return (
-    <div id="sticky-header" ref={containerRef} className="fixed inset-0 w-full h-[100vh] pointer-events-none z-30 overflow-hidden mix-blend-difference" style={{ opacity: 0 }}>
+    <div id="sticky-header" ref={containerRef} className="fixed inset-0 w-full h-[100vh] pointer-events-none z-30 overflow-hidden mix-blend-difference">
       
       {/* The main scaling text */}
       <h2 
