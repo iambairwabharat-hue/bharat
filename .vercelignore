@@ -1,0 +1,14 @@
+node_modules
+.git
+bharat
+# Only exclude root-level screenshots, NOT model textures in public/
+/*.png
+*.cjs
+*.txt
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.app.json
+!tsconfig.node.json
+!vercel.json
+!vite.config.ts
