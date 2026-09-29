@@ -18,7 +18,6 @@ export default function AboutSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
   const bairwaRef = useRef<HTMLSpanElement>(null);
-  const labelRef = useRef<HTMLDivElement>(null);
   const taglineRef = useRef<HTMLParagraphElement>(null);
   const animatedRef = useRef(false);
 
