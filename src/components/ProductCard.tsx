@@ -7,6 +7,11 @@ interface ProductCardProps {
   src: string;
   className?: string;
   style?: React.CSSProperties;
+  id?: string;
+  title?: string;
+  category?: string;
+  year?: string;
+  onClickAction?: () => void;
 }
 
 const vertexShader = `
@@ -25,27 +30,21 @@ uniform float uImageAspect;
 uniform float uPlaneAspect;
 varying vec2 vUv;
 
-// 2D Random
 float random (vec2 st) {
     return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
 }
 
-// 2D Noise based on Morgan McGuire @morgan3d
-// https://www.shadertoy.com/view/4dS3Wd
 float noise (in vec2 st) {
     vec2 i = floor(st);
     vec2 f = fract(st);
 
-    // Four corners in 2D of a tile
     float a = random(i);
     float b = random(i + vec2(1.0, 0.0));
     float c = random(i + vec2(0.0, 1.0));
     float d = random(i + vec2(1.0, 1.0));
 
-    // Smooth Interpolation
     vec2 u = f*f*(3.0-2.0*f);
 
-    // Mix 4 coorners percentages
     return mix(a, b, u.x) +
             (c - a)* u.y * (1.0 - u.x) +
             (d - b) * u.x * u.y;
@@ -54,7 +53,6 @@ float noise (in vec2 st) {
 void main() {
   vec2 uv = vUv;
   
-  // Object-cover logic
   vec2 ratio = vec2(
     min((uPlaneAspect / uImageAspect), 1.0),
     min((uImageAspect / uPlaneAspect), 1.0)
@@ -65,40 +63,31 @@ void main() {
     uv.y * ratio.y + (1.0 - ratio.y) * 0.5
   );
   
-  // Calculate noise based on UV and time to create a liquid flow
-  // Scale UV to control the size of the waves
   float n1 = noise(uv * 3.0 + uTime * 0.5);
   float n2 = noise(uv * 3.0 - uTime * 0.4 + 100.0);
   
-  // Create a smooth directional distortion vector
-  vec2 distortion = vec2(n1 - 0.5, n2 - 0.5) * 0.15 * uHover;
+  vec2 distortion = vec2(n1 - 0.5, n2 - 0.5) * 0.12 * uHover;
   
-  // Add a pinch/pull effect towards the center (like the screenshot)
   vec2 center = vec2(0.5, 0.5);
   float distToCenter = distance(uv, center);
   vec2 dirToCenter = normalize(uv - center);
   
-  // Combine noise distortion with a radial pull
-  vec2 finalDistortion = distortion + dirToCenter * sin(distToCenter * 10.0 - uTime) * 0.05 * uHover;
+  vec2 finalDistortion = distortion + dirToCenter * sin(distToCenter * 8.0 - uTime) * 0.04 * uHover;
   
-  // Apply distortion to UV
   vec2 distortedUv = uv + finalDistortion;
-  
-  // Prevent harsh wrapping by clamping
   distortedUv = clamp(distortedUv, 0.001, 0.999);
   
   vec4 color = texture2D(tDiffuse, distortedUv);
   
-  // Optional: subtle RGB shift during movement
-  float r = texture2D(tDiffuse, distortedUv + vec2(0.01 * uHover, 0.0)).r;
-  float b = texture2D(tDiffuse, distortedUv - vec2(0.01 * uHover, 0.0)).b;
+  float r = texture2D(tDiffuse, distortedUv + vec2(0.008 * uHover, 0.0)).r;
+  float b = texture2D(tDiffuse, distortedUv - vec2(0.008 * uHover, 0.0)).b;
   
   gl_FragColor = vec4(r, color.g, b, color.a);
 }
 `;
 
 const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
-  ({ src, className = '', style }, ref) => {
+  ({ src, className = '', style, id = '01', title = 'PROJECT', category = 'CREATIVE DEV', year = '2026', onClickAction }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     
@@ -122,7 +111,7 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
         ([entry]) => {
           setInViewport(entry.isIntersecting);
         },
-        { rootMargin: '150px' } // Pre-load slightly before scrolling into view
+        { rootMargin: '150px' }
       );
       observer.observe(containerRef.current);
       return () => observer.disconnect();
@@ -138,27 +127,22 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
       const canvas = canvasRef.current;
       const container = containerRef.current;
       
-      // Setup Renderer
       const renderer = new THREE.WebGLRenderer({ 
         canvas, 
         alpha: true, 
         antialias: false,
-        powerPreference: "low-power" // Help with multiple contexts
+        powerPreference: "low-power"
       });
       rendererRef.current = renderer;
       
-      // Setup Scene
       const scene = new THREE.Scene();
       sceneRef.current = scene;
       
-      // Setup Camera
       const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
       cameraRef.current = camera;
       
-      // Setup Geometry
       const geometry = new THREE.PlaneGeometry(2, 2);
       
-      // Load Texture
       const textureLoader = new THREE.TextureLoader();
       textureLoader.setCrossOrigin('anonymous');
       textureLoader.load(
@@ -167,10 +151,6 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
           texture.minFilter = THREE.LinearFilter;
           texture.generateMipmaps = false;
           
-          // Match texture aspect ratio with container if needed, but for simplicity
-          // we'll rely on the object-cover class approach combined with GLSL clamping.
-          
-          // Setup Material
           const material = new THREE.ShaderMaterial({
             vertexShader,
             fragmentShader,
@@ -179,16 +159,14 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
               uHover: { value: 0 },
               uTime: { value: 0 },
               uImageAspect: { value: texture.image.width / texture.image.height },
-              uPlaneAspect: { value: 1.0 } // Set dynamically in resize
+              uPlaneAspect: { value: 1.0 }
             }
           });
           materialRef.current = material;
           
-          // Setup Mesh
           const mesh = new THREE.Mesh(geometry, material);
           scene.add(mesh);
           
-          // Initial render
           resize();
           renderer.render(scene, camera);
           setWebglActive(true);
@@ -196,7 +174,6 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
         undefined,
         (err) => {
           console.error("Failed to load WebGL texture:", err);
-          // Fallback image will be visible
         }
       );
 
@@ -208,7 +185,6 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
         if (materialRef.current) {
           materialRef.current.uniforms.uPlaneAspect.value = width / height;
         }
-        // Force a render on resize
         if (sceneRef.current && cameraRef.current) {
           rendererRef.current.render(sceneRef.current, cameraRef.current);
         }
@@ -217,7 +193,6 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
       const observer = new ResizeObserver(resize);
       observer.observe(container);
 
-      // Render loop (only active during animation or hover)
       const render = () => {
         if (!rendererRef.current || !sceneRef.current || !cameraRef.current || !materialRef.current) {
           rafRef.current = requestAnimationFrame(render);
@@ -225,21 +200,17 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
         }
 
         const state = hoverState.current;
-        
-        // Update uniforms
         materialRef.current.uniforms.uHover.value = state.progress;
         
         if (state.isHovered || state.progress > 0) {
-          state.time += 0.02; // Speed of the fluid
+          state.time += 0.02;
           materialRef.current.uniforms.uTime.value = state.time;
         }
         
-        // Only render if there's active effect to save battery/perf
         if (state.progress > 0.001 || state.isHovered) {
           rendererRef.current.render(sceneRef.current, cameraRef.current);
         } else if (state.progress === 0 && !state.isHovered) {
-           // Ensure it renders clean at least once at 0
-           rendererRef.current.render(sceneRef.current, cameraRef.current);
+          rendererRef.current.render(sceneRef.current, cameraRef.current);
         }
 
         rafRef.current = requestAnimationFrame(render);
@@ -258,7 +229,6 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
       };
     }, [src, inViewport]);
 
-    // Handle Hover
     const { playHover, playClick } = useAudio();
 
     const onMouseEnter = () => {
@@ -266,7 +236,7 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
       hoverState.current.isHovered = true;
       gsap.to(hoverState.current, {
         progress: 1,
-        duration: 1.2,
+        duration: 1.0,
         ease: "power2.out",
         overwrite: true
       });
@@ -276,40 +246,75 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
       hoverState.current.isHovered = false;
       gsap.to(hoverState.current, {
         progress: 0,
-        duration: 1.2,
+        duration: 1.0,
         ease: "power3.out",
         overwrite: true
       });
     };
 
+    const handleClick = () => {
+      playClick();
+      if (onClickAction) onClickAction();
+    };
+
     return (
       <div 
         ref={(node) => {
-          // Combine both refs
+          containerRef.current = node;
           if (typeof ref === 'function') ref(node);
           else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
         }}
-        className={`bp-card relative w-full overflow-hidden cursor-pointer ${className}`}
+        data-cursor="VIEW +"
+        className={`bp-card group relative w-full overflow-hidden cursor-pointer select-none border border-white/10 rounded-sm bg-black/40 ${className}`}
         style={{ ...style, transform: 'scale(0)' }}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
-        onClick={playClick}
+        onClick={handleClick}
       >
-        {/* Fallback image if WebGL fails, loads, or is out of viewport */}
+        {/* Fallback image */}
         <img 
           src={src} 
-          alt="Archive Collection" 
-          className={`absolute inset-0 w-full h-full object-cover -z-10 transition-opacity duration-300 ${
+          alt={title} 
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
             webglActive ? 'opacity-0' : 'opacity-100'
           }`} 
           draggable={false}
         />
+        
+        {/* WebGL Canvas */}
         <canvas 
           ref={canvasRef} 
-          className={`absolute inset-0 w-full h-full object-cover z-10 pointer-events-none transition-opacity duration-300 ${
+          className={`absolute inset-0 w-full h-full object-cover z-10 pointer-events-none transition-all duration-700 ease-out group-hover:scale-105 ${
             webglActive ? 'opacity-100' : 'opacity-0'
           }`}
         />
+
+        {/* Gradient dark overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent z-20 pointer-events-none opacity-80 group-hover:opacity-95 transition-opacity duration-300" />
+
+        {/* Minimal Editorial Index Badge (Top Left) */}
+        <div className="absolute top-4 left-4 z-30 pointer-events-none flex items-center gap-2">
+          <span className="text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors duration-300">
+            {id}
+          </span>
+          <div className="w-1 h-1 rounded-full bg-white/30 group-hover:bg-white transition-colors duration-300" />
+        </div>
+
+        {/* Minimal Editorial Metadata Bar (Bottom) */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 z-30 pointer-events-none flex flex-col gap-1 transform group-hover:-translate-y-1 transition-transform duration-300">
+          <div className="flex items-center justify-between">
+            <h3 className="text-white font-['Inter_Tight'] font-bold text-sm md:text-base tracking-tight uppercase group-hover:text-white transition-colors">
+              {title}
+            </h3>
+            <span className="text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all duration-300 text-xs font-mono">
+              →
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[9px] font-mono tracking-[0.25em] text-white/40 uppercase">
+            <span>{category}</span>
+            <span>{year}</span>
+          </div>
+        </div>
       </div>
     );
   }

@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react';
-import { GALLERY_IMAGES } from './GallerySection';
+import { PROJECT_ITEMS } from './GallerySection';
 
 export interface PhilosophySectionRefs {
   container: HTMLDivElement | null;
@@ -18,8 +18,7 @@ const PhilosophySection = forwardRef<PhilosophySectionRefs>((_, ref) => {
     get imageRef() { return imageRef.current; }
   }));
 
-  // Re-use the last gallery image for a huge parallax background
-  const bgImage = GALLERY_IMAGES[GALLERY_IMAGES.length - 1].src;
+  const bgImage = PROJECT_ITEMS[PROJECT_ITEMS.length - 1].src;
 
   return (
     <div 
@@ -39,7 +38,7 @@ const PhilosophySection = forwardRef<PhilosophySectionRefs>((_, ref) => {
         className="text-black font-['Inter_Tight'] font-bold text-[120px] lg:text-[200px] whitespace-nowrap uppercase tracking-tighter mix-blend-exclusion"
         style={{ transform: 'translateX(100vw)' }}
       >
-        NOT JUST CLOTHING. A ABCD FOR THE FUTURE.
+        NOT JUST CLOTHING. A ARCHIVE FOR THE FUTURE.
       </div>
     </div>
   );

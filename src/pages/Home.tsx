@@ -6,6 +6,7 @@ import HeroSection from '../components/HeroSection';
 import GallerySection from '../components/GallerySection';
 import StickyHeader from '../components/StickyHeader';
 import SideMenu from '../components/SideMenu';
+import AudioController from '../components/AudioController';
 import type { StickyHeaderRef } from '../components/StickyHeader';
 import { useAudio } from '../context/AudioContext';
 import { useLenis } from '../context/LenisContext';
@@ -45,7 +46,6 @@ export default function Home() {
     document.body.style.overflow = '';
     document.documentElement.style.overflow = '';
     start();
-    // Reveal the sticky header now that hero is done
     stickyVisibleRef.current = true;
     stickyHeaderRef.current?.setVisible(true);
   };
@@ -54,9 +54,9 @@ export default function Home() {
   useLayoutEffect(() => {
     const updateCols = () => {
       const w = window.innerWidth;
-      if (w < 768) setCols(1); // Single column on mobile
-      else if (w < 1100) setCols(2); // 2 columns on tablet
-      else setCols(3); // 3 columns on desktop
+      if (w < 768) setCols(1);
+      else if (w < 1100) setCols(2);
+      else setCols(3);
     };
     updateCols();
     window.addEventListener('resize', updateCols);
@@ -83,7 +83,6 @@ export default function Home() {
       }
     };
 
-    // Recalculate whenever gallery content resizes (e.g. About/Experience sections render)
     let resizeObs: ResizeObserver | null = null;
     if (galleryInnerRef.current) {
       resizeObs = new ResizeObserver(calculateHeight);
@@ -106,7 +105,7 @@ export default function Home() {
       )
     });
 
-    // RAF for Gallery Cards
+    // RAF for Gallery Cards & Sticky Header
     const updateGallery = () => {
       const scrollY = window.scrollY;
       vh = window.innerHeight;
@@ -114,26 +113,17 @@ export default function Home() {
       const wrapHeight = galleryInnerRef.current ? galleryInnerRef.current.getBoundingClientRect().height : vh;
       const maxScroll = Math.max(0, wrapHeight - vh);
 
-      // Update sticky header progress immediately as user scrolls
-      // We map the 6.5s timeline to 5vh of scrolling distance
       const stickyScrollDistance = vh * 5;
       const progress = Math.max(0, Math.min(1, scrollY / stickyScrollDistance));
       stickyHeaderRef.current?.setProgress(progress);
 
-      // Main video visibility
       const mainCanvas = document.getElementById('main-canvas');
       if (mainCanvas) {
-        if (scrollY > vh) {
-          mainCanvas.style.visibility = 'hidden';
-        } else {
-          mainCanvas.style.visibility = 'visible';
-        }
+        mainCanvas.style.visibility = scrollY > vh ? 'hidden' : 'visible';
       }
 
-      // Phase 2: Inner wrapper translate
       if (galleryInnerRef.current) {
         if (scrollY > vh) {
-          // Translate up
           const translate = Math.min(maxScroll, scrollY - vh);
           galleryInnerRef.current.style.transform = `translateY(-${translate}px)`;
         } else {
@@ -141,12 +131,10 @@ export default function Home() {
         }
       }
 
-      // Hide sticky header once About section enters viewport
       if (galleryInnerRef.current) {
         const aboutEl = galleryInnerRef.current.querySelector('.about-section-start') as HTMLElement | null;
         if (aboutEl) {
           const rect = aboutEl.getBoundingClientRect();
-          // inGallery = About section top is still below viewport (> 60px from top)
           const inGallery = rect.top > 60;
           if (inGallery !== stickyVisibleRef.current) {
             stickyVisibleRef.current = inGallery;
@@ -155,24 +143,33 @@ export default function Home() {
         }
       }
 
-      // Card scaling
-      if (scrollY > vh * 0.5 && scrollY < vh + maxScroll + vh) {
-        cardRefs.current.forEach((card) => {
-          if (!card) return;
+      // Card scaling & zero-state enforcement
+      cardRefs.current.forEach((card) => {
+        if (!card) return;
+
+        if (scrollY <= vh * 0.25) {
+          // Zero state on top/hero scroll to prevent spill lines
+          card.style.transform = 'scale(0)';
+          card.style.opacity = '0';
+        } else {
           const rect = card.getBoundingClientRect();
           const top = rect.top;
           const bottom = rect.bottom;
           
           let scale = 0;
+          let opacity = 0;
+
           if (bottom > 0 && top < vh) {
-            const enter = Math.min(1, (vh - top) / (vh * 0.6));
-            const exit = Math.min(1, bottom / (vh * 0.4));
+            const enter = Math.min(1, (vh - top) / (vh * 0.55));
+            const exit = Math.min(1, bottom / (vh * 0.35));
             scale = Math.min(enter, exit);
+            opacity = Math.min(1, scale * 1.5);
           }
           
           card.style.transform = `scale(${scale})`;
-        });
-      }
+          card.style.opacity = `${opacity}`;
+        }
+      });
 
       rafId = requestAnimationFrame(updateGallery);
     };
@@ -185,12 +182,15 @@ export default function Home() {
       resizeObs?.disconnect();
       st.kill();
     };
-  }, [cols, stop, start]); // Re-run if cols changes since layout height changes
+  }, [cols, stop, start]);
 
   return (
-    <div id="scroll-spacer" ref={scrollSpacerRef} className="relative select-none bg-white min-h-[100vh]">
+    <div id="scroll-spacer" ref={scrollSpacerRef} className="relative select-none bg-black min-h-[100vh] overflow-x-hidden">
       <CustomCursor />
       
+      {/* Audio Toggle */}
+      <AudioController />
+
       {/* Menu Button */}
       <button 
         onClick={() => {
@@ -198,6 +198,7 @@ export default function Home() {
           setIsMenuOpen(true);
         }}
         onMouseEnter={playHover}
+        data-cursor="MENU"
         className={`fixed top-8 right-8 z-[80] mix-blend-difference text-white flex flex-col items-end justify-center gap-2 w-10 h-10 group hover:opacity-70 transition-opacity duration-300 ${isMenuOpen ? 'hidden' : 'flex'}`}
       >
         <div className="w-8 h-[2px] bg-white group-hover:w-10 transition-all duration-300"></div>
@@ -213,7 +214,7 @@ export default function Home() {
       <div 
         id="black-panel"
         ref={blackPanelRef} 
-        className="fixed inset-0 bg-black z-10 translate-y-[100vh] will-change-transform"
+        className="fixed inset-0 bg-black z-10 translate-y-[100vh] will-change-transform overflow-hidden"
       >
         <GallerySection ref={galleryInnerRef} cols={cols} cardRefs={cardRefs} />
       </div>
