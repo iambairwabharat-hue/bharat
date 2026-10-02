@@ -77,8 +77,8 @@ export default function Home() {
     const calculateHeight = () => {
       vh = window.innerHeight;
       if (galleryInnerRef.current && scrollSpacerRef.current) {
-        const wrapHeight = galleryInnerRef.current.scrollHeight;
-        const maxScroll = Math.max(0, wrapHeight - vh);
+        const wrapHeight = galleryInnerRef.current.getBoundingClientRect().height || galleryInnerRef.current.scrollHeight;
+        const maxScroll = Math.max(0, wrapHeight - vh + 120);
         scrollSpacerRef.current.style.height = `${vh + maxScroll}px`;
       }
     };

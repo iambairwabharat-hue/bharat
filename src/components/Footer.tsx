@@ -23,7 +23,6 @@ export default function Footer() {
   const buRef = useRef<HTMLSpanElement>(null);
   const iStemRef = useRef<HTMLAnchorElement>(null);
   const ldRef = useRef<HTMLSpanElement>(null);
-  const labelRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const footer = footerRef.current;
@@ -36,11 +35,12 @@ export default function Footer() {
     gsap.set(footer.querySelectorAll('.footer-line-anim'), { scaleX: 0, transformOrigin: 'left center' });
     gsap.set(footer.querySelectorAll('.footer-fade'), { y: 30, opacity: 0 });
 
-    // Initial kinetic states for B U  I  L D — perfectly unified word
+    // Initial kinetic states for B U  I  L D — unified initial word
     gsap.set(buRef.current, { x: 0 });
     gsap.set(ldRef.current, { x: 0 });
-    gsap.set(iStemRef.current, { x: 0, y: 0, rotation: 0, transformOrigin: 'top center' });
-    gsap.set(labelRef.current, { opacity: 0 });
+    gsap.set(iStemRef.current, { y: 0 });
+    gsap.set(footer.querySelector('.build-i-letter'), { opacity: 1 });
+    gsap.set(footer.querySelector('.build-contact-btn'), { opacity: 0, pointerEvents: 'none' });
 
     if (marqueeRef.current) {
       gsap.to(marqueeRef.current, { xPercent: -50, duration: 22, ease: 'none', repeat: -1 });
@@ -52,7 +52,7 @@ export default function Footer() {
           animatedRef.current = true;
           const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
 
-          // 1. Initial word reveal
+          // 1. Initial word reveals
           tl.to(footer.querySelectorAll('.ftl-word'), {
             yPercent: 0, skewX: 0, opacity: 1, duration: 0.9, stagger: 0.12,
           }, 0);
@@ -66,32 +66,30 @@ export default function Footer() {
             { color: 'white', webkitTextStrokeColor: 'rgba(255,255,255,0)', duration: 0.5, stagger: 0.08, ease: 'none' },
           0.5);
 
-          // 2. KINETIC SEPARATION TIMELINE
+          // 2. KINETIC BUILD SEPARATION -> CONTACT BUTTON MORPH
           // "BU" slides left, "LD" slides right
           tl.to(buRef.current, {
-            x: '-3.5vw', duration: 1.2, ease: 'expo.inOut'
-          }, 0.9);
+            x: '-4vw', duration: 1.1, ease: 'expo.inOut'
+          }, 0.8);
 
           tl.to(ldRef.current, {
-            x: '3.5vw', duration: 1.2, ease: 'expo.inOut'
-          }, 0.9);
+            x: '4vw', duration: 1.1, ease: 'expo.inOut'
+          }, 0.8);
 
-          // The giant solid white letter 'I' rotates 45 degrees diagonally & drops stem down
+          // The letter 'I' slides down into the open gap & morphs into the CONTACT US button
           tl.to(iStemRef.current, {
-            y: '30px',
-            rotation: 45,
-            duration: 1.2,
-            ease: 'expo.inOut'
-          }, 0.9);
+            y: '75px', duration: 1.1, ease: 'expo.inOut'
+          }, 0.8);
 
-          // Reveal "CONTACT" label printed along the rotated stem of 'I'
-          tl.to(labelRef.current, {
-            opacity: 1,
-            duration: 0.5,
-            ease: 'power2.out'
-          }, 1.4);
+          tl.to(footer.querySelector('.build-i-letter'), {
+            opacity: 0, duration: 0.3
+          }, 0.95);
 
-          // Lines draw & footer fades up
+          tl.to(footer.querySelector('.build-contact-btn'), {
+            opacity: 1, pointerEvents: 'auto', duration: 0.5, ease: 'power2.out'
+          }, 1.1);
+
+          // Divider lines & footer fade up
           tl.to(footer.querySelectorAll('.footer-line-anim'), {
             scaleX: 1, duration: 1.1, stagger: 0.15, ease: 'power3.out',
           }, 0.4);
@@ -108,25 +106,12 @@ export default function Footer() {
     return () => observer.disconnect();
   }, []);
 
-  const handleMouseEnterBuild = () => {
-    gsap.to(buRef.current, { x: '-5vw', duration: 0.6, ease: 'power3.out' });
-    gsap.to(ldRef.current, { x: '5vw', duration: 0.6, ease: 'power3.out' });
-    gsap.to(iStemRef.current, { y: '45px', rotation: 50, duration: 0.6, ease: 'power3.out' });
-    gsap.to(labelRef.current, { opacity: 1, duration: 0.3 });
-  };
-
-  const handleMouseLeaveBuild = () => {
-    gsap.to(buRef.current, { x: '-3.5vw', duration: 0.6, ease: 'power3.out' });
-    gsap.to(ldRef.current, { x: '3.5vw', duration: 0.6, ease: 'power3.out' });
-    gsap.to(iStemRef.current, { y: '30px', rotation: 45, duration: 0.6, ease: 'power3.out' });
-  };
-
   const year = new Date().getFullYear();
 
   return (
     <footer
       ref={footerRef}
-      className="relative w-full bg-[#050505] text-white overflow-hidden"
+      className="relative w-full bg-[#050505] text-white overflow-hidden pb-32"
     >
       <div className="footer-line-anim w-full h-px bg-white/10" />
 
@@ -146,58 +131,52 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="px-6 md:px-16 lg:px-24 pt-24 pb-12">
+      <div className="px-6 md:px-16 lg:px-24 pt-24 pb-16">
 
         {/* ── Kinetic Typography CTA Section ───────────────── */}
-        <div 
-          className="mb-32 relative select-none"
-          onMouseEnter={handleMouseEnterBuild}
-          onMouseLeave={handleMouseLeaveBuild}
-        >
+        <div className="mb-32 relative select-none">
 
           {/* Line 1: LET'S */}
           <div className="flex flex-wrap items-end gap-x-6 leading-[0.85] overflow-hidden mb-2">
             <span
               className="ftl-word inline-block font-black uppercase tracking-tighter text-white"
-              style={{ fontSize: 'clamp(60px,12vw,160px)' }}
+              style={{ fontSize: 'clamp(56px,11vw,145px)' }}
             >
               LET'S
             </span>
           </div>
 
-          {/* Line 2: B U [I] L D — Solid typography blending 100% seamlessly */}
-          <div className="relative flex items-center leading-[0.85] py-2">
+          {/* Line 2: B U  [I -> CONTACT US BUTTON]  L D */}
+          <div className="relative flex items-center leading-[0.85] my-2">
             {/* BU */}
             <span
               ref={buRef}
               className="inline-block font-black uppercase tracking-tighter text-white will-change-transform z-10"
-              style={{ fontSize: 'clamp(60px,12vw,160px)' }}
+              style={{ fontSize: 'clamp(56px,11vw,145px)' }}
             >
               BU
             </span>
 
-            {/* Kinetic Letter 'I' — Solid white character that detaches and rotates 45 deg */}
+            {/* Kinetic Letter 'I' -> Morphs into centered CONTACT US button */}
             <a
               ref={iStemRef}
               href="mailto:iambairwabharat@gmail.com"
               data-cursor="CONTACT"
-              className="relative inline-block font-black uppercase tracking-tighter text-white will-change-transform z-30 group cursor-pointer"
+              className="relative inline-flex items-center justify-center font-black uppercase tracking-tighter text-white will-change-transform z-30 group cursor-pointer mx-1"
               style={{
-                fontSize: 'clamp(60px,12vw,160px)',
+                fontSize: 'clamp(56px,11vw,145px)',
                 lineHeight: '0.85',
               }}
             >
-              <span className="inline-block text-white transition-colors duration-300 group-hover:text-white/80">
+              {/* Initial solid white letter 'I' */}
+              <span className="build-i-letter inline-block text-white transition-opacity duration-300">
                 I
               </span>
 
-              {/* Monospace "CONTACT" label printed along the stem of rotated 'I' */}
-              <span 
-                ref={labelRef}
-                className="absolute left-1/2 bottom-2 -translate-x-1/2 translate-y-full text-[9px] font-mono tracking-[0.4em] text-white/90 bg-black/80 px-2 py-0.5 rounded-xs border border-white/20 uppercase whitespace-nowrap opacity-0 transition-opacity duration-300 pointer-events-none"
-                style={{ transform: 'translate(-50%, 100%) rotate(-45deg)', transformOrigin: 'top center' }}
-              >
-                CONTACT →
+              {/* Solid white CONTACT US button */}
+              <span className="build-contact-btn absolute opacity-0 pointer-events-none bg-white text-black font-mono text-xs md:text-sm tracking-[0.3em] font-bold px-6 py-3.5 rounded-sm uppercase whitespace-nowrap shadow-2xl flex items-center gap-3 transition-all duration-300 hover:bg-white/90 hover:scale-105 border border-white">
+                <span>CONTACT US</span>
+                <span className="text-base font-mono">→</span>
               </span>
             </a>
 
@@ -205,17 +184,17 @@ export default function Footer() {
             <span
               ref={ldRef}
               className="inline-block font-black uppercase tracking-tighter text-white will-change-transform z-10"
-              style={{ fontSize: 'clamp(60px,12vw,160px)' }}
+              style={{ fontSize: 'clamp(56px,11vw,145px)' }}
             >
               LD
             </span>
           </div>
 
-          {/* Line 3: SOMETHING */}
-          <div className="overflow-hidden leading-[0.85] my-2">
+          {/* Line 3: SOMETHING (with top margin so CONTACT button sits cleanly in space) */}
+          <div className="overflow-hidden leading-[0.85] mt-20 mb-2">
             <span
               className="ftl-line2 inline-block font-black uppercase tracking-tighter text-white will-change-transform"
-              style={{ fontSize: 'clamp(60px,12vw,160px)' }}
+              style={{ fontSize: 'clamp(56px,11vw,145px)' }}
             >
               SOMETHING
             </span>
@@ -228,7 +207,7 @@ export default function Footer() {
                 key={i}
                 className="ftl-fill-letter inline-block font-black uppercase tracking-tighter will-change-transform"
                 style={{
-                  fontSize: 'clamp(60px,12vw,160px)',
+                  fontSize: 'clamp(56px,11vw,145px)',
                   color: 'transparent',
                   WebkitTextStroke: '1.5px rgba(255,255,255,0.15)',
                 }}
@@ -289,7 +268,7 @@ export default function Footer() {
         </div>
 
         <div className="footer-line-anim w-full h-px bg-white/[0.06] mt-14 mb-8" />
-        <div className="footer-fade flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div className="footer-fade flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pb-8">
           <span className="text-[9px] tracking-[0.4em] text-white/20 uppercase font-mono">
             © {year} BHARAT BAIRWA. ALL RIGHTS RESERVED.
           </span>
