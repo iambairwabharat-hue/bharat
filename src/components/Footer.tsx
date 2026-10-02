@@ -35,10 +35,10 @@ export default function Footer() {
     gsap.set(footer.querySelectorAll('.footer-line-anim'), { scaleX: 0, transformOrigin: 'left center' });
     gsap.set(footer.querySelectorAll('.footer-fade'), { y: 30, opacity: 0 });
 
-    // Initial kinetic states for B U  I  L D — 100% solid initial word
+    // Initial kinetic states for B U  I  L D — tightly coupled initial word
     gsap.set(buRef.current, { x: 0 });
     gsap.set(ldRef.current, { x: 0 });
-    gsap.set(iStemRef.current, { x: 0, y: 0, rotation: 0, transformOrigin: 'center center' });
+    gsap.set(iStemRef.current, { x: 0, y: 0, rotation: 0, transformOrigin: 'top center' });
 
     if (marqueeRef.current) {
       gsap.to(marqueeRef.current, { xPercent: -50, duration: 22, ease: 'none', repeat: -1 });
@@ -64,20 +64,21 @@ export default function Footer() {
             { color: 'white', webkitTextStrokeColor: 'rgba(255,255,255,0)', duration: 0.5, stagger: 0.08, ease: 'none' },
           0.5);
 
-          // 2. SMOOTH LIQUID KINETIC SEPARATION FOR "BUILD"
+          // 2. CONTROLLED LOCAL KINETIC SEPARATION FOR "BUILD"
+          // "BU" slides left by 25px, "LD" slides right by 25px
           tl.to(buRef.current, {
-            x: '-3vw', duration: 1.4, ease: 'power3.inOut'
+            x: '-25px', duration: 1.2, ease: 'power3.inOut'
           }, 0.8);
 
           tl.to(ldRef.current, {
-            x: '3vw', duration: 1.4, ease: 'power3.inOut'
+            x: '25px', duration: 1.2, ease: 'power3.inOut'
           }, 0.8);
 
-          // The letter 'I' rotates 45 degrees diagonally & drops stem down smoothly
+          // The letter 'I' detaches down 28px and rotates 45deg diagonally
           tl.to(iStemRef.current, {
-            y: '35px',
+            y: '28px',
             rotation: 45,
-            duration: 1.4,
+            duration: 1.2,
             ease: 'power3.inOut'
           }, 0.8);
 
@@ -99,15 +100,15 @@ export default function Footer() {
   }, []);
 
   const handleMouseEnterBuild = () => {
-    gsap.to(buRef.current, { x: '-5vw', duration: 0.5, ease: 'power2.out' });
-    gsap.to(ldRef.current, { x: '5vw', duration: 0.5, ease: 'power2.out' });
-    gsap.to(iStemRef.current, { y: '50px', rotation: 50, duration: 0.5, ease: 'power2.out' });
+    gsap.to(buRef.current, { x: '-40px', duration: 0.4, ease: 'power2.out' });
+    gsap.to(ldRef.current, { x: '40px', duration: 0.4, ease: 'power2.out' });
+    gsap.to(iStemRef.current, { y: '38px', rotation: 50, duration: 0.4, ease: 'power2.out' });
   };
 
   const handleMouseLeaveBuild = () => {
-    gsap.to(buRef.current, { x: '-3vw', duration: 0.5, ease: 'power2.out' });
-    gsap.to(ldRef.current, { x: '3vw', duration: 0.5, ease: 'power2.out' });
-    gsap.to(iStemRef.current, { y: '35px', rotation: 45, duration: 0.5, ease: 'power2.out' });
+    gsap.to(buRef.current, { x: '-25px', duration: 0.4, ease: 'power2.out' });
+    gsap.to(ldRef.current, { x: '25px', duration: 0.4, ease: 'power2.out' });
+    gsap.to(iStemRef.current, { y: '28px', rotation: 45, duration: 0.4, ease: 'power2.out' });
   };
 
   const year = new Date().getFullYear();
@@ -137,112 +138,105 @@ export default function Footer() {
 
       <div className="px-6 md:px-16 lg:px-24 pt-24 pb-16">
 
-        {/* ── Balanced Full-Width Kinetic Typography CTA Section ── */}
-        <div className="mb-32 relative select-none flex flex-col gap-2 w-full">
+        {/* ── Cohesive Typography CTA Block ───────────────── */}
+        <div className="mb-24 relative select-none">
 
-          {/* Line 1: LET'S + Right-aligned Editorial Metadata */}
-          <div className="flex items-end justify-between w-full overflow-hidden">
+          {/* Line 1: LET'S BUILD */}
+          <div className="flex flex-wrap items-end gap-x-6 leading-[0.85] mb-2">
             <span
               className="ftl-word inline-block font-black uppercase tracking-tighter text-white"
-              style={{ fontSize: 'clamp(60px,12.5vw,175px)', lineHeight: '0.85' }}
+              style={{ fontSize: 'clamp(56px,11vw,145px)' }}
             >
               LET'S
             </span>
 
-            <div className="footer-fade hidden md:flex flex-col items-end pb-4 text-right">
-              <span className="text-[10px] font-mono tracking-[0.4em] text-white/40 uppercase">03 / GET IN TOUCH</span>
-              <span className="text-xs font-mono tracking-[0.25em] text-white/70 uppercase">SABARMATI, AHMEDABAD</span>
-            </div>
-          </div>
-
-          {/* Line 2: Full-width B U [I -> Kinetic Rotated Stem] L D */}
-          <div 
-            className="relative flex items-center justify-between w-full leading-[0.85] py-4"
-            onMouseEnter={handleMouseEnterBuild}
-            onMouseLeave={handleMouseLeaveBuild}
-          >
-            {/* BU */}
-            <span
-              ref={buRef}
-              className="inline-block font-black uppercase tracking-tighter text-white will-change-transform z-10"
-              style={{ fontSize: 'clamp(60px,12.5vw,175px)' }}
+            {/* BUILD — Local kinetic word wrapper */}
+            <span 
+              className="inline-flex items-center leading-[0.85] relative cursor-pointer"
+              onMouseEnter={handleMouseEnterBuild}
+              onMouseLeave={handleMouseLeaveBuild}
             >
-              BU
-            </span>
-
-            {/* Kinetic Letter 'I' -> Rotated stem with CONTACT label */}
-            <a
-              ref={iStemRef}
-              href="mailto:iambairwabharat@gmail.com"
-              data-cursor="CONTACT"
-              className="relative inline-flex flex-col items-center justify-center font-black uppercase tracking-tighter text-white will-change-transform z-30 group cursor-pointer"
-              style={{
-                fontSize: 'clamp(60px,12.5vw,175px)',
-                lineHeight: '0.85',
-              }}
-            >
-              <span className="inline-block text-white group-hover:text-white/80 transition-colors">
-                I
+              {/* BU */}
+              <span
+                ref={buRef}
+                className="inline-block font-black uppercase tracking-tighter text-white will-change-transform z-10"
+                style={{ fontSize: 'clamp(56px,11vw,145px)' }}
+              >
+                BU
               </span>
-              <span className="text-[9px] font-mono tracking-[0.3em] font-bold text-black bg-white px-2.5 py-0.5 uppercase whitespace-nowrap rounded-xs opacity-90 group-hover:opacity-100 transition-opacity absolute -bottom-6 shadow-xl">
-                CONTACT →
-              </span>
-            </a>
 
-            {/* LD */}
-            <span
-              ref={ldRef}
-              className="inline-block font-black uppercase tracking-tighter text-white will-change-transform z-10"
-              style={{ fontSize: 'clamp(60px,12.5vw,175px)' }}
-            >
-              LD
+              {/* Kinetic Letter 'I' -> Rotated stem with CONTACT tag */}
+              <a
+                ref={iStemRef}
+                href="mailto:iambairwabharat@gmail.com"
+                data-cursor="CONTACT"
+                className="relative inline-flex flex-col items-center justify-center font-black uppercase tracking-tighter text-white will-change-transform z-30 group cursor-pointer px-0.5"
+                style={{
+                  fontSize: 'clamp(56px,11vw,145px)',
+                  lineHeight: '0.85',
+                }}
+              >
+                <span className="inline-block text-white group-hover:text-white/80 transition-colors">
+                  I
+                </span>
+                <span className="text-[8px] font-mono tracking-[0.3em] font-bold text-black bg-white px-2 py-0.5 uppercase whitespace-nowrap rounded-xs opacity-90 group-hover:opacity-100 transition-opacity absolute -bottom-5 shadow-xl pointer-events-none">
+                  CONTACT →
+                </span>
+              </a>
+
+              {/* LD */}
+              <span
+                ref={ldRef}
+                className="inline-block font-black uppercase tracking-tighter text-white will-change-transform z-10"
+                style={{ fontSize: 'clamp(56px,11vw,145px)' }}
+              >
+                LD
+              </span>
             </span>
           </div>
 
-          {/* Line 3: Full-width SOMETHING */}
-          <div className="overflow-hidden leading-[0.85] my-2 w-full">
+          {/* Line 2: SOMETHING (with top margin so rotated I stem sits cleanly in space) */}
+          <div className="overflow-hidden leading-[0.85] mt-10 mb-2">
             <span
-              className="ftl-line2 inline-block font-black uppercase tracking-tighter text-white will-change-transform w-full"
-              style={{ fontSize: 'clamp(60px,12.5vw,175px)' }}
+              className="ftl-line2 inline-block font-black uppercase tracking-tighter text-white will-change-transform"
+              style={{ fontSize: 'clamp(56px,11vw,145px)' }}
             >
               SOMETHING
             </span>
           </div>
 
-          {/* Line 4: GREAT. + Right-aligned Email CTA Button */}
-          <div className="flex flex-col md:flex-row items-start md:items-end justify-between w-full gap-8">
-            <div className="flex flex-wrap items-end gap-x-1 leading-[0.85]">
-              {'GREAT.'.split('').map((l, i) => (
-                <span
-                  key={i}
-                  className="ftl-fill-letter inline-block font-black uppercase tracking-tighter will-change-transform"
-                  style={{
-                    fontSize: 'clamp(60px,12.5vw,175px)',
-                    color: 'transparent',
-                    WebkitTextStroke: '1.5px rgba(255,255,255,0.15)',
-                  }}
-                >
-                  {l}
-                </span>
-              ))}
-            </div>
-
-            <div className="footer-fade pb-2">
-              <a
-                href="mailto:iambairwabharat@gmail.com"
-                data-cursor="EMAIL"
-                className="group inline-flex items-center gap-4 border border-white/20 px-6 py-4 hover:bg-white hover:border-white transition-all duration-500 rounded-sm bg-black/40 backdrop-blur-md"
+          {/* Line 3: GREAT. */}
+          <div className="flex flex-wrap items-end gap-x-1 leading-[0.85]">
+            {'GREAT.'.split('').map((l, i) => (
+              <span
+                key={i}
+                className="ftl-fill-letter inline-block font-black uppercase tracking-tighter will-change-transform"
+                style={{
+                  fontSize: 'clamp(56px,11vw,145px)',
+                  color: 'transparent',
+                  WebkitTextStroke: '1.5px rgba(255,255,255,0.15)',
+                }}
               >
-                <span className="text-xs tracking-[0.2em] text-white/80 group-hover:text-black uppercase font-mono transition-colors duration-300">
-                  iambairwabharat@gmail.com
-                </span>
-                <span className="text-white/40 group-hover:text-black group-hover:translate-x-1 transition-all duration-300 text-sm font-mono">
-                  →
-                </span>
-              </a>
-            </div>
+                {l}
+              </span>
+            ))}
           </div>
+        </div>
 
+        {/* Email CTA button */}
+        <div className="footer-fade mb-24">
+          <a
+            href="mailto:iambairwabharat@gmail.com"
+            data-cursor="EMAIL"
+            className="group inline-flex items-center gap-6 border border-white/20 px-8 py-5 hover:bg-white hover:border-white transition-all duration-500 rounded-sm bg-white/[0.02]"
+          >
+            <span className="text-xs md:text-sm tracking-[0.25em] text-white/80 group-hover:text-black uppercase font-mono transition-colors duration-300">
+              iambairwabharat@gmail.com
+            </span>
+            <span className="text-white/40 group-hover:text-black group-hover:translate-x-1.5 transition-all duration-300 text-sm font-mono">
+              →
+            </span>
+          </a>
         </div>
 
         <div className="footer-line-anim w-full h-px bg-white/[0.08] mb-14" />
