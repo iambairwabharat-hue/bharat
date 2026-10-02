@@ -16,7 +16,6 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   const footerRef = useRef<HTMLElement>(null);
-  const animatedRef = useRef(false);
   const marqueeRef = useRef<HTMLDivElement>(null);
 
   // Pensatori Irrazionali BUILD Kinetic Refs
@@ -30,13 +29,14 @@ export default function Footer() {
 
   useEffect(() => {
     const footer = footerRef.current;
-    if (!footer) return;
+    const ctaSection = ctaSectionRef.current;
+    if (!footer || !ctaSection) return;
 
     // Pre-hide non-hero elements
     gsap.set(footer.querySelectorAll('.footer-line-anim'), { scaleX: 0, transformOrigin: 'left center' });
     gsap.set(footer.querySelectorAll('.footer-fade'), { y: 30, opacity: 0 });
 
-    // ── Initial 0-State for BUILD Kinetic System ────────────────
+    // Initial 0-State
     gsap.set(buRef.current, { x: 0 });
     gsap.set(ldRef.current, { x: 0 });
     gsap.set(iWrapperRef.current, { x: 0, y: 0, rotation: 0, transformOrigin: 'center center' });
@@ -48,73 +48,56 @@ export default function Footer() {
       gsap.to(marqueeRef.current, { xPercent: -50, duration: 22, ease: 'none', repeat: -1 });
     }
 
-    // Master Scroll-Driven Animation Timeline (Pensatori Irrazionali 3-Phase Animation)
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !animatedRef.current) {
-          animatedRef.current = true;
-          const tl = gsap.timeline({ defaults: { ease: 'power3.inOut' } });
+    // ── Create Master Paused Timeline (0.0 to 1.0 progress) ──────
+    const tl = gsap.timeline({ paused: true });
 
-          // ── PHASE 1 (0s -> 0.6s): BUILD Initial reveal with echo layers ──
-          tl.fromTo(footer.querySelectorAll('.build-echo'),
-            { opacity: 0, scale: 0.95 },
-            { opacity: 0.12, scale: 1, duration: 0.8, stagger: 0.08, ease: 'power2.out' },
-          0);
+    // Phase 1: BUILD Echo lines fade in (0 -> 0.3)
+    tl.fromTo(footer.querySelectorAll('.build-echo'),
+      { opacity: 0, scale: 0.96 },
+      { opacity: 0.14, scale: 1, duration: 0.3, stagger: 0.05, ease: 'power2.out' },
+    0);
 
-          // ── PHASE 2 (0.6s -> 1.8s): BU & LD separate, I rotates 45deg diagonally with CONTACT stem label ──
-          tl.to(buRef.current, {
-            x: '-10vw', duration: 1.2, ease: 'power3.inOut'
-          }, 0.6);
+    // Phase 2: BU & LD separate, I rotates 45deg diagonally with CONTACT stem label (0.2 -> 0.7)
+    tl.to(buRef.current, { x: '-10vw', duration: 0.5, ease: 'sine.inOut' }, 0.2);
+    tl.to(ldRef.current, { x: '10vw', duration: 0.5, ease: 'sine.inOut' }, 0.2);
+    tl.to(iWrapperRef.current, { y: '70px', rotation: 45, duration: 0.5, ease: 'sine.inOut' }, 0.2);
+    tl.to(stemLabelRef.current, { opacity: 1, duration: 0.25, ease: 'sine.out' }, 0.45);
 
-          tl.to(ldRef.current, {
-            x: '10vw', duration: 1.2, ease: 'power3.inOut'
-          }, 0.6);
+    // Phase 3: I rotates to horizontal & settles into final CONTACT US button (0.65 -> 1.0)
+    tl.to(iWrapperRef.current, { rotation: 0, y: '135px', duration: 0.35, ease: 'back.out(1.2)' }, 0.65);
+    tl.to([iTextRef.current, stemLabelRef.current], { opacity: 0, duration: 0.2 }, 0.65);
+    tl.to(finalBtnRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.25, ease: 'sine.out' }, 0.75);
 
-          tl.to(iWrapperRef.current, {
-            y: '70px',
-            rotation: 45,
-            duration: 1.2,
-            ease: 'power3.inOut'
-          }, 0.6);
+    // Divider lines & footer details fade up (0.5 -> 1.0)
+    tl.to(footer.querySelectorAll('.footer-line-anim'), { scaleX: 1, duration: 0.4, stagger: 0.1, ease: 'power2.out' }, 0.5);
+    tl.to(footer.querySelectorAll('.footer-fade'), { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power2.out' }, 0.6);
 
-          tl.to(stemLabelRef.current, {
-            opacity: 1, duration: 0.4, ease: 'power2.out'
-          }, 1.0);
+    // ── Liquid Lerp Scroll Scrub Loop (60FPS) ──────────────────
+    let currentProgress = 0;
+    let animFrameId: number;
 
-          // ── PHASE 3 (1.8s -> 2.6s): I rotates to horizontal & settles into final CONTACT US button ──
-          tl.to(iWrapperRef.current, {
-            rotation: 0,
-            y: '140px',
-            duration: 0.8,
-            ease: 'back.out(1.4)'
-          }, 1.7);
+    const updateScrollProgress = () => {
+      if (ctaSectionRef.current) {
+        const rect = ctaSectionRef.current.getBoundingClientRect();
+        const vh = window.innerHeight;
 
-          tl.to([iTextRef.current, stemLabelRef.current], {
-            opacity: 0, duration: 0.3
-          }, 1.7);
+        // Map section position inside viewport to timeline progress [0, 1]
+        const rawProgress = (vh - rect.top) / (vh * 0.75);
+        const targetProgress = Math.max(0, Math.min(1, rawProgress));
 
-          tl.to(finalBtnRef.current, {
-            opacity: 1,
-            pointerEvents: 'auto',
-            duration: 0.5,
-            ease: 'power2.out'
-          }, 1.9);
+        // Smooth liquid lerp interpolation (10% per frame)
+        currentProgress += (targetProgress - currentProgress) * 0.12;
+        tl.progress(currentProgress);
+      }
+      animFrameId = requestAnimationFrame(updateScrollProgress);
+    };
 
-          // Divider lines & footer details fade up
-          tl.to(footer.querySelectorAll('.footer-line-anim'), {
-            scaleX: 1, duration: 1.1, stagger: 0.15, ease: 'power3.out',
-          }, 0.8);
+    animFrameId = requestAnimationFrame(updateScrollProgress);
 
-          tl.to(footer.querySelectorAll('.footer-fade'), {
-            y: 0, opacity: 1, duration: 0.8, stagger: 0.08, ease: 'power3.out',
-          }, 1.2);
-        }
-      },
-      { threshold: 0.08 }
-    );
-
-    observer.observe(footer);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(animFrameId);
+      tl.kill();
+    };
   }, []);
 
   const year = new Date().getFullYear();
@@ -144,7 +127,7 @@ export default function Footer() {
 
       <div className="px-6 md:px-16 lg:px-24 pt-20 pb-16">
 
-        {/* ── Giant Pensatori Irrazionali Kinetic BUILD CTA Section ── */}
+        {/* ── Giant Pensatori Irrazionali Liquid Scroll-Scrubbed BUILD CTA ── */}
         <div 
           ref={ctaSectionRef}
           className="relative w-full py-20 md:py-32 overflow-visible select-none flex flex-col items-center justify-center min-h-[480px] mb-24"
