@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
 const NAV_LINKS = [
@@ -21,10 +21,9 @@ export default function Footer() {
 
   // Kinetic BUILD letter refs
   const buRef = useRef<HTMLSpanElement>(null);
-  const iLetterRef = useRef<HTMLAnchorElement>(null);
+  const iStemRef = useRef<HTMLAnchorElement>(null);
   const ldRef = useRef<HTMLSpanElement>(null);
-
-  const [isInteractiveHovered, setIsInteractiveHovered] = useState(false);
+  const labelRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const footer = footerRef.current;
@@ -37,10 +36,11 @@ export default function Footer() {
     gsap.set(footer.querySelectorAll('.footer-line-anim'), { scaleX: 0, transformOrigin: 'left center' });
     gsap.set(footer.querySelectorAll('.footer-fade'), { y: 30, opacity: 0 });
 
-    // Initial kinetic states for B U  I  L D
+    // Initial kinetic states for B U  I  L D — perfectly unified word
     gsap.set(buRef.current, { x: 0 });
     gsap.set(ldRef.current, { x: 0 });
-    gsap.set(iLetterRef.current, { y: 0, rotation: 0, scale: 1 });
+    gsap.set(iStemRef.current, { x: 0, y: 0, rotation: 0, transformOrigin: 'top center' });
+    gsap.set(labelRef.current, { opacity: 0 });
 
     if (marqueeRef.current) {
       gsap.to(marqueeRef.current, { xPercent: -50, duration: 22, ease: 'none', repeat: -1 });
@@ -52,7 +52,7 @@ export default function Footer() {
           animatedRef.current = true;
           const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
 
-          // 1. Initial word reveals
+          // 1. Initial word reveal
           tl.to(footer.querySelectorAll('.ftl-word'), {
             yPercent: 0, skewX: 0, opacity: 1, duration: 0.9, stagger: 0.12,
           }, 0);
@@ -66,36 +66,36 @@ export default function Footer() {
             { color: 'white', webkitTextStrokeColor: 'rgba(255,255,255,0)', duration: 0.5, stagger: 0.08, ease: 'none' },
           0.5);
 
-          // 2. KINETIC TYPOGRAPHY SEPARATION EFFECT FOR "BUILD"
+          // 2. KINETIC SEPARATION TIMELINE
           // "BU" slides left, "LD" slides right
           tl.to(buRef.current, {
-            x: '-4vw', duration: 1.1, ease: 'expo.inOut'
-          }, 0.8);
+            x: '-3.5vw', duration: 1.2, ease: 'expo.inOut'
+          }, 0.9);
 
           tl.to(ldRef.current, {
-            x: '4vw', duration: 1.1, ease: 'expo.inOut'
-          }, 0.8);
+            x: '3.5vw', duration: 1.2, ease: 'expo.inOut'
+          }, 0.9);
 
-          // The letter "I" detaches, drops down, rotates diagonally, and expands into contact button!
-          tl.to(iLetterRef.current, {
-            y: '65px',
+          // The giant solid white letter 'I' rotates 45 degrees diagonally & drops stem down
+          tl.to(iStemRef.current, {
+            y: '30px',
             rotation: 45,
-            duration: 1.1,
+            duration: 1.2,
             ease: 'expo.inOut'
-          }, 0.8)
-          .to(iLetterRef.current, {
-            rotation: 0,
-            y: '90px',
-            duration: 0.8,
-            ease: 'elastic.out(1, 0.6)'
-          }, 1.8);
+          }, 0.9);
 
-          // Divider lines draw
+          // Reveal "CONTACT" label printed along the rotated stem of 'I'
+          tl.to(labelRef.current, {
+            opacity: 1,
+            duration: 0.5,
+            ease: 'power2.out'
+          }, 1.4);
+
+          // Lines draw & footer fades up
           tl.to(footer.querySelectorAll('.footer-line-anim'), {
             scaleX: 1, duration: 1.1, stagger: 0.15, ease: 'power3.out',
           }, 0.4);
 
-          // Footer content fades up
           tl.to(footer.querySelectorAll('.footer-fade'), {
             y: 0, opacity: 1, duration: 0.8, stagger: 0.08, ease: 'power3.out',
           }, 0.6);
@@ -107,6 +107,19 @@ export default function Footer() {
     observer.observe(footer);
     return () => observer.disconnect();
   }, []);
+
+  const handleMouseEnterBuild = () => {
+    gsap.to(buRef.current, { x: '-5vw', duration: 0.6, ease: 'power3.out' });
+    gsap.to(ldRef.current, { x: '5vw', duration: 0.6, ease: 'power3.out' });
+    gsap.to(iStemRef.current, { y: '45px', rotation: 50, duration: 0.6, ease: 'power3.out' });
+    gsap.to(labelRef.current, { opacity: 1, duration: 0.3 });
+  };
+
+  const handleMouseLeaveBuild = () => {
+    gsap.to(buRef.current, { x: '-3.5vw', duration: 0.6, ease: 'power3.out' });
+    gsap.to(ldRef.current, { x: '3.5vw', duration: 0.6, ease: 'power3.out' });
+    gsap.to(iStemRef.current, { y: '30px', rotation: 45, duration: 0.6, ease: 'power3.out' });
+  };
 
   const year = new Date().getFullYear();
 
@@ -136,50 +149,55 @@ export default function Footer() {
       <div className="px-6 md:px-16 lg:px-24 pt-24 pb-12">
 
         {/* ── Kinetic Typography CTA Section ───────────────── */}
-        <div className="mb-32 relative">
+        <div 
+          className="mb-32 relative select-none"
+          onMouseEnter={handleMouseEnterBuild}
+          onMouseLeave={handleMouseLeaveBuild}
+        >
 
           {/* Line 1: LET'S */}
           <div className="flex flex-wrap items-end gap-x-6 leading-[0.85] overflow-hidden mb-2">
             <span
               className="ftl-word inline-block font-black uppercase tracking-tighter text-white"
-              style={{ fontSize: 'clamp(56px,11vw,145px)' }}
+              style={{ fontSize: 'clamp(60px,12vw,160px)' }}
             >
               LET'S
             </span>
           </div>
 
-          {/* Line 2: B U [I -> CONTACT BUTTON] L D */}
+          {/* Line 2: B U [I] L D — Solid typography blending 100% seamlessly */}
           <div className="relative flex items-center leading-[0.85] py-2">
             {/* BU */}
             <span
               ref={buRef}
               className="inline-block font-black uppercase tracking-tighter text-white will-change-transform z-10"
-              style={{ fontSize: 'clamp(56px,11vw,145px)' }}
+              style={{ fontSize: 'clamp(60px,12vw,160px)' }}
             >
               BU
             </span>
 
-            {/* Kinetic Letter 'I' -> Rotates & Morphs into Interactive Contact Button */}
+            {/* Kinetic Letter 'I' — Solid white character that detaches and rotates 45 deg */}
             <a
-              ref={iLetterRef}
+              ref={iStemRef}
               href="mailto:iambairwabharat@gmail.com"
               data-cursor="CONTACT"
-              onMouseEnter={() => setIsInteractiveHovered(true)}
-              onMouseLeave={() => setIsInteractiveHovered(false)}
-              className="relative inline-flex items-center justify-center font-black uppercase tracking-tighter will-change-transform z-30 group cursor-pointer transition-colors duration-300"
+              className="relative inline-block font-black uppercase tracking-tighter text-white will-change-transform z-30 group cursor-pointer"
               style={{
-                fontSize: 'clamp(56px,11vw,145px)',
-                lineHeight: '1',
+                fontSize: 'clamp(60px,12vw,160px)',
+                lineHeight: '0.85',
               }}
             >
-              {/* The 'I' Letter stem when closed, morphing into button pill on separation */}
-              <span className="relative z-10 text-white group-hover:text-black transition-colors duration-300 px-4 py-2 bg-white/10 group-hover:bg-white border border-white/30 rounded-sm flex items-center gap-3 shadow-2xl backdrop-blur-md">
-                <span className="font-mono text-xs md:text-sm tracking-[0.3em] font-bold text-white group-hover:text-black transition-colors uppercase whitespace-nowrap">
-                  {isInteractiveHovered ? 'iambairwabharat@gmail.com' : 'CONTACT US'}
-                </span>
-                <span className="text-sm font-mono text-white/60 group-hover:text-black group-hover:translate-x-1 transition-all">
-                  →
-                </span>
+              <span className="inline-block text-white transition-colors duration-300 group-hover:text-white/80">
+                I
+              </span>
+
+              {/* Monospace "CONTACT" label printed along the stem of rotated 'I' */}
+              <span 
+                ref={labelRef}
+                className="absolute left-1/2 bottom-2 -translate-x-1/2 translate-y-full text-[9px] font-mono tracking-[0.4em] text-white/90 bg-black/80 px-2 py-0.5 rounded-xs border border-white/20 uppercase whitespace-nowrap opacity-0 transition-opacity duration-300 pointer-events-none"
+                style={{ transform: 'translate(-50%, 100%) rotate(-45deg)', transformOrigin: 'top center' }}
+              >
+                CONTACT →
               </span>
             </a>
 
@@ -187,7 +205,7 @@ export default function Footer() {
             <span
               ref={ldRef}
               className="inline-block font-black uppercase tracking-tighter text-white will-change-transform z-10"
-              style={{ fontSize: 'clamp(56px,11vw,145px)' }}
+              style={{ fontSize: 'clamp(60px,12vw,160px)' }}
             >
               LD
             </span>
@@ -197,7 +215,7 @@ export default function Footer() {
           <div className="overflow-hidden leading-[0.85] my-2">
             <span
               className="ftl-line2 inline-block font-black uppercase tracking-tighter text-white will-change-transform"
-              style={{ fontSize: 'clamp(56px,11vw,145px)' }}
+              style={{ fontSize: 'clamp(60px,12vw,160px)' }}
             >
               SOMETHING
             </span>
@@ -210,7 +228,7 @@ export default function Footer() {
                 key={i}
                 className="ftl-fill-letter inline-block font-black uppercase tracking-tighter will-change-transform"
                 style={{
-                  fontSize: 'clamp(56px,11vw,145px)',
+                  fontSize: 'clamp(60px,12vw,160px)',
                   color: 'transparent',
                   WebkitTextStroke: '1.5px rgba(255,255,255,0.15)',
                 }}
