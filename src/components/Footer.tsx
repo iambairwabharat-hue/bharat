@@ -24,7 +24,6 @@ export default function Footer() {
   const ldRef = useRef<HTMLSpanElement>(null);
   const iWrapperRef = useRef<HTMLDivElement>(null);
   const iTextRef = useRef<HTMLSpanElement>(null);
-  const stemLabelRef = useRef<HTMLSpanElement>(null);
   const finalBtnRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -36,43 +35,43 @@ export default function Footer() {
     gsap.set(footer.querySelectorAll('.footer-line-anim'), { scaleX: 0, transformOrigin: 'left center' });
     gsap.set(footer.querySelectorAll('.footer-fade'), { y: 30, opacity: 0 });
 
-    // Initial 0-State
+    // Initial 0-State (BUILD spelled as a clean single word)
     gsap.set(buRef.current, { x: 0 });
     gsap.set(ldRef.current, { x: 0 });
     gsap.set(iWrapperRef.current, { x: 0, y: 0, rotation: 0, transformOrigin: 'center center' });
     gsap.set(iTextRef.current, { opacity: 1 });
-    gsap.set(stemLabelRef.current, { opacity: 0 });
     gsap.set(finalBtnRef.current, { opacity: 0, pointerEvents: 'none' });
 
     if (marqueeRef.current) {
       gsap.to(marqueeRef.current, { xPercent: -50, duration: 22, ease: 'none', repeat: -1 });
     }
 
-    // ── Create Master Paused Timeline (0.0 to 1.0 progress) ──────
+    // ── Master Timeline (Clean 0.0 to 1.0 progress with ZERO element overlap) ──
     const tl = gsap.timeline({ paused: true });
 
-    // Phase 1: BUILD Echo lines fade in (0 -> 0.3)
+    // Phase 1: Echo lines (0.0 -> 0.3)
     tl.fromTo(footer.querySelectorAll('.build-echo'),
       { opacity: 0, scale: 0.96 },
-      { opacity: 0.14, scale: 1, duration: 0.3, stagger: 0.05, ease: 'power2.out' },
+      { opacity: 0.12, scale: 1, duration: 0.3, stagger: 0.05, ease: 'power2.out' },
     0);
 
-    // Phase 2: BU & LD separate, I rotates 45deg diagonally with CONTACT stem label (0.2 -> 0.7)
-    tl.to(buRef.current, { x: '-10vw', duration: 0.5, ease: 'sine.inOut' }, 0.2);
-    tl.to(ldRef.current, { x: '10vw', duration: 0.5, ease: 'sine.inOut' }, 0.2);
-    tl.to(iWrapperRef.current, { y: '70px', rotation: 45, duration: 0.5, ease: 'sine.inOut' }, 0.2);
-    tl.to(stemLabelRef.current, { opacity: 1, duration: 0.25, ease: 'sine.out' }, 0.45);
+    // Phase 2: BU & LD separate, letter I rotates 45deg (0.15 -> 0.55)
+    tl.to(buRef.current, { x: '-9vw', duration: 0.4, ease: 'power2.inOut' }, 0.15);
+    tl.to(ldRef.current, { x: '9vw', duration: 0.4, ease: 'power2.inOut' }, 0.15);
+    tl.to(iWrapperRef.current, { y: '50px', rotation: 45, duration: 0.4, ease: 'power2.inOut' }, 0.15);
 
-    // Phase 3: I rotates to horizontal & settles into final CONTACT US button (0.65 -> 1.0)
-    tl.to(iWrapperRef.current, { rotation: 0, y: '135px', duration: 0.35, ease: 'back.out(1.2)' }, 0.65);
-    tl.to([iTextRef.current, stemLabelRef.current], { opacity: 0, duration: 0.2 }, 0.65);
-    tl.to(finalBtnRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.25, ease: 'sine.out' }, 0.75);
+    // Phase 3: Clean mutual-exclusive cross-fade (0.45 -> 0.65) — NO OVERLAP EVER
+    tl.to(iTextRef.current, { opacity: 0, duration: 0.15, ease: 'power1.out' }, 0.45);
+    tl.to(finalBtnRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.15, ease: 'power1.in' }, 0.55);
 
-    // Divider lines & footer details fade up (0.5 -> 1.0)
-    tl.to(footer.querySelectorAll('.footer-line-anim'), { scaleX: 1, duration: 0.4, stagger: 0.1, ease: 'power2.out' }, 0.5);
-    tl.to(footer.querySelectorAll('.footer-fade'), { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power2.out' }, 0.6);
+    // Phase 4: Settle into horizontal CONTACT US button at bottom (0.55 -> 1.0)
+    tl.to(iWrapperRef.current, { rotation: 0, y: '120px', duration: 0.45, ease: 'power2.inOut' }, 0.55);
 
-    // ── Liquid Lerp Scroll Scrub Loop (60FPS) ──────────────────
+    // Divider lines & footer details fade up (0.6 -> 1.0)
+    tl.to(footer.querySelectorAll('.footer-line-anim'), { scaleX: 1, duration: 0.4, stagger: 0.1, ease: 'power2.out' }, 0.6);
+    tl.to(footer.querySelectorAll('.footer-fade'), { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power2.out' }, 0.7);
+
+    // ── Smooth 60FPS Lerp Scrub ──────────────────
     let currentProgress = 0;
     let animFrameId: number;
 
@@ -81,11 +80,9 @@ export default function Footer() {
         const rect = ctaSectionRef.current.getBoundingClientRect();
         const vh = window.innerHeight;
 
-        // Map section position inside viewport to timeline progress [0, 1]
         const rawProgress = (vh - rect.top) / (vh * 0.75);
         const targetProgress = Math.max(0, Math.min(1, rawProgress));
 
-        // Smooth liquid lerp interpolation (10% per frame)
         currentProgress += (targetProgress - currentProgress) * 0.12;
         tl.progress(currentProgress);
       }
@@ -127,10 +124,10 @@ export default function Footer() {
 
       <div className="px-6 md:px-16 lg:px-24 pt-20 pb-16">
 
-        {/* ── Giant Pensatori Irrazionali Liquid Scroll-Scrubbed BUILD CTA ── */}
+        {/* ── Giant Pensatori Irrazionali Kinetic BUILD CTA Section ── */}
         <div 
           ref={ctaSectionRef}
-          className="relative w-full py-20 md:py-32 overflow-visible select-none flex flex-col items-center justify-center min-h-[480px] mb-24"
+          className="relative w-full py-20 md:py-32 overflow-visible select-none flex flex-col items-center justify-center min-h-[460px] mb-24"
         >
           {/* Echo lines behind BUILD */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -173,20 +170,11 @@ export default function Footer() {
                 style={{ fontSize: 'clamp(70px,16vw,220px)', lineHeight: '0.85' }}
               >
                 {/* Initial solid white letter 'I' */}
-                <span ref={iTextRef} className="inline-block text-white transition-opacity duration-300">
+                <span ref={iTextRef} className="inline-block text-white transition-opacity duration-200">
                   I
                 </span>
 
-                {/* Phase 2: Diagonal stem CONTACT label */}
-                <span
-                  ref={stemLabelRef}
-                  className="absolute text-[9px] font-mono tracking-[0.4em] font-bold text-white bg-black/90 border border-white/40 px-3 py-1 uppercase whitespace-nowrap shadow-2xl opacity-0 pointer-events-none"
-                  style={{ transform: 'rotate(-45deg)' }}
-                >
-                  CONTACT
-                </span>
-
-                {/* Phase 3: Final horizontal CONTACT US button */}
+                {/* Final horizontal CONTACT US button (MUTUALLY EXCLUSIVE — ZERO OVERLAP) */}
                 <span
                   ref={finalBtnRef}
                   className="absolute opacity-0 pointer-events-none bg-white text-black font-mono text-xs md:text-sm tracking-[0.3em] font-bold px-8 py-4 rounded-sm uppercase whitespace-nowrap shadow-2xl flex items-center gap-4 transition-all duration-300 hover:bg-white/90 hover:scale-105 border border-white"
