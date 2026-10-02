@@ -35,43 +35,42 @@ export default function Footer() {
     gsap.set(footer.querySelectorAll('.footer-line-anim'), { scaleX: 0, transformOrigin: 'left center' });
     gsap.set(footer.querySelectorAll('.footer-fade'), { y: 30, opacity: 0 });
 
-    // Initial 0-State (BUILD spelled as a clean single word)
+    // Initial 0-State (BUILD spelled out cleanly)
     gsap.set(buRef.current, { x: 0 });
     gsap.set(ldRef.current, { x: 0 });
     gsap.set(iWrapperRef.current, { x: 0, y: 0, rotation: 0, transformOrigin: 'center center' });
-    gsap.set(iTextRef.current, { opacity: 1 });
-    gsap.set(finalBtnRef.current, { opacity: 0, pointerEvents: 'none' });
+    gsap.set(iTextRef.current, { opacity: 1, scale: 1 });
+    gsap.set(finalBtnRef.current, { opacity: 0, scale: 0.9, pointerEvents: 'none' });
 
     if (marqueeRef.current) {
       gsap.to(marqueeRef.current, { xPercent: -50, duration: 22, ease: 'none', repeat: -1 });
     }
 
-    // ── Master Timeline (Clean 0.0 to 1.0 progress with ZERO element overlap) ──
+    // ── Master Scroll-Driven Timeline (Smooth Monotonic Easing Curves) ──────
     const tl = gsap.timeline({ paused: true });
 
-    // Phase 1: Echo lines (0.0 -> 0.3)
+    // 1. Echo lines fade in smoothly (0.0 -> 0.4)
     tl.fromTo(footer.querySelectorAll('.build-echo'),
       { opacity: 0, scale: 0.96 },
-      { opacity: 0.12, scale: 1, duration: 0.3, stagger: 0.05, ease: 'power2.out' },
+      { opacity: 0.12, scale: 1, duration: 0.4, stagger: 0.05, ease: 'power2.out' },
     0);
 
-    // Phase 2: BU & LD separate, letter I rotates 45deg (0.15 -> 0.55)
-    tl.to(buRef.current, { x: '-9vw', duration: 0.4, ease: 'power2.inOut' }, 0.15);
-    tl.to(ldRef.current, { x: '9vw', duration: 0.4, ease: 'power2.inOut' }, 0.15);
-    tl.to(iWrapperRef.current, { y: '50px', rotation: 45, duration: 0.4, ease: 'power2.inOut' }, 0.15);
+    // 2. BU & LD slide outward continuously over the entire scroll (0.1 -> 0.9)
+    tl.to(buRef.current, { x: '-11vw', duration: 0.8, ease: 'power2.inOut' }, 0.1);
+    tl.to(ldRef.current, { x: '11vw', duration: 0.8, ease: 'power2.inOut' }, 0.1);
 
-    // Phase 3: Clean mutual-exclusive cross-fade (0.45 -> 0.65) — NO OVERLAP EVER
-    tl.to(iTextRef.current, { opacity: 0, duration: 0.15, ease: 'power1.out' }, 0.45);
-    tl.to(finalBtnRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.15, ease: 'power1.in' }, 0.55);
+    // 3. Letter I detaches and drops down smoothly into center gap (0.1 -> 0.85)
+    tl.to(iWrapperRef.current, { y: '110px', duration: 0.75, ease: 'power2.inOut' }, 0.1);
 
-    // Phase 4: Settle into horizontal CONTACT US button at bottom (0.55 -> 1.0)
-    tl.to(iWrapperRef.current, { rotation: 0, y: '120px', duration: 0.45, ease: 'power2.inOut' }, 0.55);
+    // 4. Letter I cross-fades into the horizontal CONTACT US button smoothly without direction reversal (0.45 -> 0.75)
+    tl.to(iTextRef.current, { opacity: 0, scale: 0.8, duration: 0.3, ease: 'power2.in' }, 0.45);
+    tl.to(finalBtnRef.current, { opacity: 1, scale: 1, pointerEvents: 'auto', duration: 0.3, ease: 'power2.out' }, 0.55);
 
-    // Divider lines & footer details fade up (0.6 -> 1.0)
-    tl.to(footer.querySelectorAll('.footer-line-anim'), { scaleX: 1, duration: 0.4, stagger: 0.1, ease: 'power2.out' }, 0.6);
-    tl.to(footer.querySelectorAll('.footer-fade'), { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power2.out' }, 0.7);
+    // 5. Lines and footer metadata fade up smoothly at end of scroll (0.6 -> 1.0)
+    tl.to(footer.querySelectorAll('.footer-line-anim'), { scaleX: 1, duration: 0.4, stagger: 0.08, ease: 'power2.out' }, 0.6);
+    tl.to(footer.querySelectorAll('.footer-fade'), { y: 0, opacity: 1, duration: 0.4, stagger: 0.06, ease: 'power2.out' }, 0.7);
 
-    // ── Smooth 60FPS Lerp Scrub ──────────────────
+    // ── Ultra-Smooth Liquid Inertia Lerp Scrub Loop (60FPS) ──────────────
     let currentProgress = 0;
     let animFrameId: number;
 
@@ -80,10 +79,14 @@ export default function Footer() {
         const rect = ctaSectionRef.current.getBoundingClientRect();
         const vh = window.innerHeight;
 
-        const rawProgress = (vh - rect.top) / (vh * 0.75);
+        // Map section scroll entry over a long, luxurious 1.8vh scroll distance
+        const startScroll = vh * 0.9;
+        const endScroll = -vh * 0.4;
+        const rawProgress = (startScroll - rect.top) / (startScroll - endScroll);
         const targetProgress = Math.max(0, Math.min(1, rawProgress));
 
-        currentProgress += (targetProgress - currentProgress) * 0.12;
+        // Heavy inertia lerp (6% per frame) for butter-smooth gliding motion
+        currentProgress += (targetProgress - currentProgress) * 0.06;
         tl.progress(currentProgress);
       }
       animFrameId = requestAnimationFrame(updateScrollProgress);
@@ -102,7 +105,7 @@ export default function Footer() {
   return (
     <footer
       ref={footerRef}
-      className="relative w-full bg-[#050505] text-white overflow-hidden pb-36"
+      className="relative w-full bg-[#050505] text-white overflow-hidden pb-40"
     >
       <div className="footer-line-anim w-full h-px bg-white/10" />
 
@@ -124,10 +127,10 @@ export default function Footer() {
 
       <div className="px-6 md:px-16 lg:px-24 pt-20 pb-16">
 
-        {/* ── Giant Pensatori Irrazionali Kinetic BUILD CTA Section ── */}
+        {/* ── Giant Pensatori Irrazionali Liquid Scroll-Scrubbed BUILD CTA ── */}
         <div 
           ref={ctaSectionRef}
-          className="relative w-full py-20 md:py-32 overflow-visible select-none flex flex-col items-center justify-center min-h-[460px] mb-24"
+          className="relative w-full py-24 md:py-36 overflow-visible select-none flex flex-col items-center justify-center min-h-[480px] mb-28"
         >
           {/* Echo lines behind BUILD */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -158,7 +161,7 @@ export default function Footer() {
               BU
             </span>
 
-            {/* Letter 'I' / Rotated Stem / Final Contact Button (Center) */}
+            {/* Letter 'I' -> Morphs into CONTACT US button (Center) */}
             <div
               ref={iWrapperRef}
               className="relative flex items-center justify-center z-30 will-change-transform px-1"
@@ -170,11 +173,11 @@ export default function Footer() {
                 style={{ fontSize: 'clamp(70px,16vw,220px)', lineHeight: '0.85' }}
               >
                 {/* Initial solid white letter 'I' */}
-                <span ref={iTextRef} className="inline-block text-white transition-opacity duration-200">
+                <span ref={iTextRef} className="inline-block text-white transition-opacity duration-300">
                   I
                 </span>
 
-                {/* Final horizontal CONTACT US button (MUTUALLY EXCLUSIVE — ZERO OVERLAP) */}
+                {/* Final horizontal CONTACT US button */}
                 <span
                   ref={finalBtnRef}
                   className="absolute opacity-0 pointer-events-none bg-white text-black font-mono text-xs md:text-sm tracking-[0.3em] font-bold px-8 py-4 rounded-sm uppercase whitespace-nowrap shadow-2xl flex items-center gap-4 transition-all duration-300 hover:bg-white/90 hover:scale-105 border border-white"
