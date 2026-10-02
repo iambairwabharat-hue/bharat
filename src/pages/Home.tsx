@@ -135,7 +135,7 @@ export default function Home() {
         const aboutEl = galleryInnerRef.current.querySelector('.about-section-start') as HTMLElement | null;
         if (aboutEl) {
           const rect = aboutEl.getBoundingClientRect();
-          const inGallery = rect.top > 60;
+          const inGallery = rect.top > 60 && scrollY > vh * 0.5;
           if (inGallery !== stickyVisibleRef.current) {
             stickyVisibleRef.current = inGallery;
             stickyHeaderRef.current?.setVisible(inGallery);
@@ -185,7 +185,7 @@ export default function Home() {
   }, [cols, stop, start]);
 
   return (
-    <div id="scroll-spacer" ref={scrollSpacerRef} className="relative select-none bg-black min-h-[100vh] overflow-x-hidden">
+    <div id="scroll-spacer" ref={scrollSpacerRef} className="relative select-none bg-[#06060a] min-h-[100vh] overflow-x-hidden">
       <CustomCursor />
       
       {/* Audio Toggle */}
@@ -214,7 +214,7 @@ export default function Home() {
       <div 
         id="black-panel"
         ref={blackPanelRef} 
-        className="fixed inset-0 bg-black z-10 translate-y-[100vh] will-change-transform overflow-hidden"
+        className="fixed inset-0 bg-[#06060a] z-10 translate-y-[100vh] will-change-transform overflow-hidden"
       >
         <GallerySection ref={galleryInnerRef} cols={cols} cardRefs={cardRefs} />
       </div>

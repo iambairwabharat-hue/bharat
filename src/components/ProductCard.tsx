@@ -265,7 +265,7 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
           else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
         }}
         data-cursor="VIEW +"
-        className={`bp-card group relative w-full overflow-hidden cursor-pointer select-none border border-white/10 rounded-sm bg-black/40 ${className}`}
+        className={`bp-card group relative w-full overflow-hidden cursor-pointer select-none border border-white/10 rounded-sm bg-[#0a0a0f] ${className}`}
         style={{ ...style, transform: 'scale(0)' }}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
