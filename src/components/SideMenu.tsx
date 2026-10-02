@@ -9,10 +9,9 @@ interface SideMenuProps {
 const MENU_LINKS = [
   { name: 'HOME', href: '/' },
   { name: 'WEB SHOWCASE', href: '/web' },
+  { name: 'SOCIAL MEDIA', href: 'https://github.com/iambairwabharat-hue' },
+  { name: 'WEBSITE', href: '/' },
   { name: '3D EXPERIENCE', href: '/preview-3d' },
-  { name: 'ABOUT & SKILLS', href: '#about-section' },
-  { name: 'EXPERIENCE', href: '#experience-section' },
-  { name: 'CONTACT', href: 'mailto:iambairwabharat@gmail.com' },
 ];
 
 export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
@@ -31,6 +30,8 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
       if (el) {
         el.scrollIntoView({ behavior: 'smooth' });
       }
+    } else if (href.startsWith('http')) {
+      window.open(href, '_blank', 'noopener,noreferrer');
     } else {
       window.location.href = href;
     }
