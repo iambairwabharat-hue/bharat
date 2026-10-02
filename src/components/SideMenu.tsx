@@ -8,6 +8,8 @@ interface SideMenuProps {
 
 const MENU_LINKS = [
   { name: 'HOME', href: '/' },
+  { name: 'WEBSITE TORNADO', href: '/landscape.html' },
+  { name: 'SOCIAL MEDIA', href: '/social.html' },
   { name: 'WEB SHOWCASE', href: '/web' },
   { name: '3D EXPERIENCE', href: '/preview-3d' },
   { name: 'ABOUT & SKILLS', href: '/#about-section' },
