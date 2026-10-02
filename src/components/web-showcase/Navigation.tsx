@@ -31,7 +31,7 @@ export default function Navigation({
 
         <button
           onClick={() => setIsProfileOpen((prev) => !prev)}
-          className="label pointer-events-auto hover:opacity-60 transition-opacity font-medium font-mono text-xs uppercase border border-white/20 px-3 py-1 rounded-full"
+          className="label pointer-events-auto hover:opacity-60 transition-opacity font-medium font-mono text-xs uppercase border border-white/20 px-3 py-1 rounded-full mr-16 md:mr-20"
           aria-expanded={isProfileOpen}
         >
           {isProfileOpen ? "Close" : "Profile"}

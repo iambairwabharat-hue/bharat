@@ -5,12 +5,17 @@ import ProfileModal from "../components/web-showcase/ProfileModal";
 import NewsletterModal from "../components/web-showcase/NewsletterModal";
 import ProjectModal from "../components/web-showcase/ProjectModal";
 import ThreeCanvas from "../components/web-showcase/ThreeCanvas";
+import CustomCursor from "../components/CustomCursor";
+import SideMenu from "../components/SideMenu";
+import { useAudio } from "../context/AudioContext";
 import { ArrowUpRight } from "lucide-react";
 
 export default function WebShowcase() {
+  const { playHover, playClick } = useAudio();
   const [activeView, setActiveView] = useState("featured");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<WebProject | null>(null);
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
 
@@ -205,6 +210,24 @@ export default function WebShowcase() {
 
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-black text-white select-none">
+      <CustomCursor />
+
+      {/* Hamburger Menu Button */}
+      <button 
+        onClick={() => {
+          playClick();
+          setIsMenuOpen(true);
+        }}
+        onMouseEnter={playHover}
+        data-cursor="MENU"
+        className={`fixed top-8 right-8 z-[80] mix-blend-difference text-white flex flex-col items-end justify-center gap-2 w-10 h-10 group hover:opacity-70 transition-opacity duration-300 ${isMenuOpen ? 'hidden' : 'flex'}`}
+      >
+        <div className="w-8 h-[2px] bg-white group-hover:w-10 transition-all duration-300"></div>
+        <div className="w-6 h-[2px] bg-white group-hover:w-8 transition-all duration-300"></div>
+      </button>
+
+      <SideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+
       {/* Three.js WebGL Layer (Renders 3D Curved Cards + Bending Text + Bending Button) */}
       {activeView === "featured" && (
         <ThreeCanvas
