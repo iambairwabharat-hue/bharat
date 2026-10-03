@@ -2,7 +2,6 @@ import { forwardRef, Fragment } from 'react';
 import ProductCard from './ProductCard';
 import AboutSection from './AboutSection';
 import ExperienceSection from './ExperienceSection';
-import Footer from './Footer';
 
 export const PROJECT_ITEMS = [
   { id: "01", src: encodeURI("./home/mokups/11788a376563433844eea8179b784f74.webp"), title: "UTOPIA CREATIVE", category: "BRAND EXPERIENCE", year: "2026", aspect: "aspect-[4/5]", span: "col-span-1" },
@@ -66,7 +65,6 @@ const GallerySection = forwardRef<HTMLDivElement, GallerySectionProps>(
         {/* About & Experience sections after the gallery */}
         <AboutSection />
         <ExperienceSection />
-        <Footer />
       </div>
     );
   }
