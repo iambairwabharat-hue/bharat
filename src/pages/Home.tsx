@@ -150,11 +150,11 @@ export default function Home() {
         galleryInnerRef.current.style.transform = `translateY(-${translate}px)`;
       }
 
-      if (galleryInnerRef.current) {
+      if (isAnimationDoneRef.current && galleryInnerRef.current) {
         const aboutEl = galleryInnerRef.current.querySelector('.about-section-start') as HTMLElement | null;
         if (aboutEl) {
           const rect = aboutEl.getBoundingClientRect();
-          const inGallery = rect.top > 60 && scrollY > vh * 0.5;
+          const inGallery = rect.top > 60;
           if (inGallery !== stickyVisibleRef.current) {
             stickyVisibleRef.current = inGallery;
             stickyHeaderRef.current?.setVisible(inGallery);
@@ -184,10 +184,6 @@ export default function Home() {
           card.style.opacity = '0.55';
         }
       });
-
-      if (blackPanelRef.current) {
-        blackPanelRef.current.style.visibility = scrollY < 20 ? 'hidden' : 'visible';
-      }
 
       rafId = requestAnimationFrame(updateGallery);
     };

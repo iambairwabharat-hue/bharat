@@ -20,14 +20,18 @@ const StickyHeader = forwardRef<StickyHeaderRef, {}>((_, ref) => {
     },
     setVisible: (visible: boolean) => {
       if (containerRef.current) {
-        containerRef.current.style.transition = 'opacity 0.45s ease';
-        containerRef.current.style.opacity = visible ? '1' : '0';
+        gsap.to(containerRef.current, {
+          opacity: visible ? 1 : 0,
+          duration: 0.45,
+          ease: 'power2.out',
+          overwrite: 'auto'
+        });
       }
     }
   }));
 
   useEffect(() => {
-    // Set initial opacity to 0 via direct style (not React prop so setVisible can override)
+    // Set initial opacity to 0 via direct style
     if (containerRef.current) {
       containerRef.current.style.opacity = '0';
     }
@@ -97,7 +101,7 @@ const StickyHeader = forwardRef<StickyHeaderRef, {}>((_, ref) => {
   const words = ["SOFTWARE", "SYSTEMS", "PLATFORMS", "WEB APPS"];
 
   return (
-    <div id="sticky-header" ref={containerRef} className="fixed inset-0 w-full h-[100vh] pointer-events-none z-30 overflow-hidden mix-blend-difference">
+    <div id="sticky-header" ref={containerRef} className="fixed inset-0 w-full h-[100vh] pointer-events-none z-30 overflow-hidden mix-blend-difference" style={{ opacity: 0 }}>
       
       {/* The main scaling text */}
       <h2 
