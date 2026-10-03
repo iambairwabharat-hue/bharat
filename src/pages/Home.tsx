@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import CustomCursor from '../components/CustomCursor';
+import ScrollDistortion from '../components/ScrollDistortion';
 import HeroSection from '../components/HeroSection';
 import GallerySection from '../components/GallerySection';
 import StickyHeader from '../components/StickyHeader';
@@ -164,8 +165,9 @@ export default function Home() {
   }, [cols, stop, start]);
 
   return (
-    <div id="scroll-spacer" ref={scrollSpacerRef} className="relative select-none bg-[#06060a] min-h-[100vh] overflow-x-hidden">
+    <div id="scroll-spacer" ref={scrollSpacerRef} className="relative select-none bg-[#030308] min-h-[100vh] overflow-x-hidden">
       <CustomCursor />
+      <ScrollDistortion />
       
       {/* Audio Toggle */}
       <AudioController />
@@ -193,7 +195,7 @@ export default function Home() {
       <div 
         id="black-panel"
         ref={blackPanelRef} 
-        className="fixed inset-0 bg-[#06060a] z-10 translate-y-[100vh] will-change-transform overflow-hidden"
+        className="fixed inset-0 bg-[#030308] z-10 translate-y-[100vh] will-change-transform overflow-hidden"
       >
         <GallerySection ref={galleryInnerRef} cols={cols} cardRefs={cardRefs} />
       </div>
