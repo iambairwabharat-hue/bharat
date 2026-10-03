@@ -156,6 +156,28 @@ export default function Home() {
         }
       }
 
+      // Dynamic card scroll scaling animation (safely clamped so cards never collapse to 0)
+      cardRefs.current.forEach((card) => {
+        if (!card) return;
+
+        const rect = card.getBoundingClientRect();
+        const top = rect.top;
+        const bottom = rect.bottom;
+
+        if (bottom > -50 && top < vh + 50) {
+          const enter = Math.min(1, Math.max(0.7, (vh - top) / (vh * 0.45)));
+          const exit = Math.min(1, Math.max(0.7, bottom / (vh * 0.35)));
+          const scale = Math.min(enter, exit);
+          const opacity = Math.min(1, Math.max(0.4, (scale - 0.7) / 0.3 * 1.2));
+
+          card.style.transform = `scale(${scale})`;
+          card.style.opacity = `${opacity}`;
+        } else {
+          card.style.transform = 'scale(0.85)';
+          card.style.opacity = '0.5';
+        }
+      });
+
       if (blackPanelRef.current) {
         blackPanelRef.current.style.visibility = scrollY < 20 ? 'hidden' : 'visible';
       }
