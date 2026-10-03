@@ -36,7 +36,7 @@ const GallerySection = forwardRef<HTMLDivElement, GallerySectionProps>(
       <div 
         id="gallery-inner-wrapper"
         ref={ref}
-        className="w-full relative flex flex-col items-center pt-[25vh] overflow-hidden" 
+        className="w-full relative flex flex-col items-center pt-[25vh] pb-[25vh] overflow-hidden" 
       >
         <div 
           className="grid w-full gap-x-6 gap-y-20 lg:gap-x-12 lg:gap-y-36 px-6 lg:px-12 pb-36 grid-flow-row-dense"

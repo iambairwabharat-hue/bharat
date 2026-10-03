@@ -77,7 +77,7 @@ export default function ExperienceSection() {
     <section
       id="experience-section"
       ref={sectionRef}
-      className="relative w-full bg-[#0a0a0a] text-white overflow-hidden py-32 md:py-48"
+      className="relative w-full bg-[#0a0a0a] text-white overflow-hidden pt-32 pb-48 md:pt-48 md:pb-64"
     >
       <div className="w-full h-px bg-white/[0.08] mb-24" />
 

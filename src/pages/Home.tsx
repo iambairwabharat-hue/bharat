@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import CustomCursor from '../components/CustomCursor';
-import ScrollDistortion from '../components/ScrollDistortion';
 import HeroSection from '../components/HeroSection';
 import GallerySection from '../components/GallerySection';
 import StickyHeader from '../components/StickyHeader';
@@ -74,12 +73,21 @@ export default function Home() {
     let rafId: number;
     let vh = window.innerHeight;
     
+    const getContentHeight = () => {
+      if (!galleryInnerRef.current) return window.innerHeight;
+      return Math.max(
+        galleryInnerRef.current.scrollHeight,
+        galleryInnerRef.current.offsetHeight,
+        Math.round(galleryInnerRef.current.getBoundingClientRect().height)
+      );
+    };
+
     // Initial dynamic spacer height
     const calculateHeight = () => {
       vh = window.innerHeight;
       if (galleryInnerRef.current && scrollSpacerRef.current) {
-        const wrapHeight = galleryInnerRef.current.getBoundingClientRect().height || galleryInnerRef.current.scrollHeight;
-        const maxScroll = Math.max(0, wrapHeight - vh + 120);
+        const wrapHeight = getContentHeight();
+        const maxScroll = Math.max(0, wrapHeight - vh + 160);
         scrollSpacerRef.current.style.height = `${vh + maxScroll}px`;
       }
     };
@@ -90,8 +98,12 @@ export default function Home() {
       resizeObs.observe(galleryInnerRef.current);
     }
 
-    setTimeout(calculateHeight, 300);
+    setTimeout(calculateHeight, 100);
+    setTimeout(calculateHeight, 400);
+    setTimeout(calculateHeight, 1000);
+    setTimeout(calculateHeight, 2000);
     window.addEventListener('resize', calculateHeight);
+    window.addEventListener('load', calculateHeight);
 
     // GSAP ScrollTrigger for black panel
     const st = ScrollTrigger.create({
@@ -111,8 +123,8 @@ export default function Home() {
       const scrollY = window.scrollY;
       vh = window.innerHeight;
       
-      const wrapHeight = galleryInnerRef.current ? galleryInnerRef.current.getBoundingClientRect().height : vh;
-      const maxScroll = Math.max(0, wrapHeight - vh);
+      const wrapHeight = getContentHeight();
+      const maxScroll = Math.max(0, wrapHeight - vh + 160);
 
       const stickyScrollDistance = vh * 5;
       const progress = Math.max(0, Math.min(1, scrollY / stickyScrollDistance));
@@ -144,11 +156,32 @@ export default function Home() {
         }
       }
 
-      // Ensure cards remain visible at scale 1 and opacity 1 once rendered
+      // Card scaling & zero-state enforcement
       cardRefs.current.forEach((card) => {
         if (!card) return;
-        card.style.transform = 'scale(1)';
-        card.style.opacity = '1';
+
+        if (scrollY <= vh * 0.25) {
+          // Zero state on top/hero scroll to prevent spill lines
+          card.style.transform = 'scale(0)';
+          card.style.opacity = '0';
+        } else {
+          const rect = card.getBoundingClientRect();
+          const top = rect.top;
+          const bottom = rect.bottom;
+          
+          let scale = 0;
+          let opacity = 0;
+
+          if (bottom > 0 && top < vh) {
+            const enter = Math.min(1, (vh - top) / (vh * 0.55));
+            const exit = Math.min(1, bottom / (vh * 0.35));
+            scale = Math.min(enter, exit);
+            opacity = Math.min(1, scale * 1.5);
+          }
+          
+          card.style.transform = `scale(${scale})`;
+          card.style.opacity = `${opacity}`;
+        }
       });
 
       rafId = requestAnimationFrame(updateGallery);
@@ -165,9 +198,8 @@ export default function Home() {
   }, [cols, stop, start]);
 
   return (
-    <div id="scroll-spacer" ref={scrollSpacerRef} className="relative select-none bg-[#030308] min-h-[100vh] overflow-x-hidden">
+    <div id="scroll-spacer" ref={scrollSpacerRef} className="relative select-none bg-[#06060a] min-h-[100vh] overflow-x-hidden">
       <CustomCursor />
-      <ScrollDistortion />
       
       {/* Audio Toggle */}
       <AudioController />
@@ -195,7 +227,7 @@ export default function Home() {
       <div 
         id="black-panel"
         ref={blackPanelRef} 
-        className="fixed inset-0 bg-[#030308] z-10 translate-y-[100vh] will-change-transform overflow-hidden"
+        className="fixed inset-0 bg-[#06060a] z-10 translate-y-[100vh] will-change-transform overflow-hidden"
       >
         <GallerySection ref={galleryInnerRef} cols={cols} cardRefs={cardRefs} />
       </div>
