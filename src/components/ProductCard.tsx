@@ -26,6 +26,7 @@ const fragmentShader = `
 uniform sampler2D tDiffuse;
 uniform float uHover;
 uniform float uTime;
+uniform vec2 uMouse;
 uniform float uImageAspect;
 uniform float uPlaneAspect;
 varying vec2 vUv;
@@ -58,31 +59,40 @@ void main() {
     min((uImageAspect / uPlaneAspect), 1.0)
   );
   
-  uv = vec2(
+  vec2 sampleUv = vec2(
     uv.x * ratio.x + (1.0 - ratio.x) * 0.5,
     uv.y * ratio.y + (1.0 - ratio.y) * 0.5
   );
-  
-  float n1 = noise(uv * 3.0 + uTime * 0.5);
-  float n2 = noise(uv * 3.0 - uTime * 0.4 + 100.0);
-  
-  vec2 distortion = vec2(n1 - 0.5, n2 - 0.5) * 0.12 * uHover;
-  
-  vec2 center = vec2(0.5, 0.5);
-  float distToCenter = distance(uv, center);
-  vec2 dirToCenter = normalize(uv - center);
-  
-  vec2 finalDistortion = distortion + dirToCenter * sin(distToCenter * 8.0 - uTime) * 0.04 * uHover;
-  
-  vec2 distortedUv = uv + finalDistortion;
-  distortedUv = clamp(distortedUv, 0.001, 0.999);
-  
-  vec4 color = texture2D(tDiffuse, distortedUv);
-  
-  float r = texture2D(tDiffuse, distortedUv + vec2(0.008 * uHover, 0.0)).r;
-  float b = texture2D(tDiffuse, distortedUv - vec2(0.008 * uHover, 0.0)).b;
-  
-  gl_FragColor = vec4(r, color.g, b, color.a);
+
+  // Aspect-corrected distance to cursor for circular ripple
+  vec2 diff = uv - uMouse;
+  diff.y /= max(uPlaneAspect, 0.001);
+  float dist = length(diff);
+
+  // Localized radius around cursor (~0.32 UV radius)
+  float radius = 0.32;
+  float influence = smoothstep(radius, 0.03, dist) * uHover;
+
+  // Localized wave ripple & organic noise near the cursor
+  float n1 = noise(uv * 4.0 + uTime * 0.6);
+  float n2 = noise(uv * 4.0 - uTime * 0.5 + 40.0);
+  vec2 noiseDistort = vec2(n1 - 0.5, n2 - 0.5) * 0.06;
+
+  vec2 dir = (dist > 0.001) ? normalize(diff) : vec2(0.0);
+  vec2 waveDistort = dir * sin(dist * 26.0 - uTime * 3.5) * 0.032;
+
+  vec2 finalDistortion = (noiseDistort + waveDistort) * influence;
+
+  vec2 distortedUv = clamp(sampleUv + finalDistortion, 0.001, 0.999);
+
+  // Localized chromatic aberration only within cursor ripple
+  float chromatic = 0.009 * influence;
+  float r = texture2D(tDiffuse, distortedUv + vec2(chromatic, 0.0)).r;
+  float g = texture2D(tDiffuse, distortedUv).g;
+  float b = texture2D(tDiffuse, distortedUv - vec2(chromatic, 0.0)).b;
+  float a = texture2D(tDiffuse, distortedUv).a;
+
+  gl_FragColor = vec4(r, g, b, a);
 }
 `;
 
@@ -100,6 +110,7 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
     
     // Animation state
     const hoverState = useRef({ progress: 0, time: 0, isHovered: false });
+    const mouseRef = useRef({ currentX: 0.5, currentY: 0.5, targetX: 0.5, targetY: 0.5 });
 
     const [inViewport, setInViewport] = useState(false);
     const [webglActive, setWebglActive] = useState(false);
@@ -158,6 +169,7 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
               tDiffuse: { value: texture },
               uHover: { value: 0 },
               uTime: { value: 0 },
+              uMouse: { value: new THREE.Vector2(0.5, 0.5) },
               uImageAspect: { value: texture.image.width / texture.image.height },
               uPlaneAspect: { value: 1.0 }
             }
@@ -180,7 +192,7 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
       const resize = () => {
         if (!containerRef.current || !rendererRef.current) return;
         const width = containerRef.current.clientWidth;
-        const height = containerRef.current.clientHeight;
+        const height = Math.round(containerRef.current.clientHeight * 1.24);
         rendererRef.current.setSize(width, height, false);
         if (materialRef.current) {
           materialRef.current.uniforms.uPlaneAspect.value = width / height;
@@ -201,6 +213,11 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
 
         const state = hoverState.current;
         materialRef.current.uniforms.uHover.value = state.progress;
+
+        const mouse = mouseRef.current;
+        mouse.currentX += (mouse.targetX - mouse.currentX) * 0.15;
+        mouse.currentY += (mouse.targetY - mouse.currentY) * 0.15;
+        materialRef.current.uniforms.uMouse.value.set(mouse.currentX, mouse.currentY);
         
         if (state.isHovered || state.progress > 0) {
           state.time += 0.02;
@@ -237,12 +254,30 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
 
     const { playHover, playClick } = useAudio();
 
-    const onMouseEnter = () => {
+    const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      mouseRef.current.targetX = Math.max(0, Math.min(1, x));
+      mouseRef.current.targetY = Math.max(0, Math.min(1, 1.0 - y));
+    };
+
+    const onMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
       playHover();
       hoverState.current.isHovered = true;
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+        mouseRef.current.targetX = Math.max(0, Math.min(1, x));
+        mouseRef.current.targetY = Math.max(0, Math.min(1, 1.0 - y));
+        mouseRef.current.currentX = mouseRef.current.targetX;
+        mouseRef.current.currentY = mouseRef.current.targetY;
+      }
       gsap.to(hoverState.current, {
         progress: 1,
-        duration: 1.0,
+        duration: 0.8,
         ease: "power2.out",
         overwrite: true
       });
@@ -252,7 +287,7 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
       hoverState.current.isHovered = false;
       gsap.to(hoverState.current, {
         progress: 0,
-        duration: 1.0,
+        duration: 0.9,
         ease: "power3.out",
         overwrite: true
       });
@@ -274,26 +309,32 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
         className={`bp-card group relative w-full overflow-hidden cursor-pointer select-none border border-white/10 rounded-sm bg-[#0a0a0f] ${className}`}
         style={{ ...style }}
         onMouseEnter={onMouseEnter}
+        onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
         onClick={handleClick}
       >
-        {/* Fallback image */}
-        <img 
-          src={src} 
-          alt={title} 
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
-            webglActive ? 'opacity-0' : 'opacity-100'
-          }`} 
-          draggable={false}
-        />
-        
-        {/* WebGL Canvas */}
-        <canvas 
-          ref={canvasRef} 
-          className={`absolute inset-0 w-full h-full object-cover z-10 pointer-events-none transition-all duration-700 ease-out group-hover:scale-105 ${
-            webglActive ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
+        {/* Parallax Media Mask Window */}
+        <div 
+          className="parallax-media absolute inset-x-0 -top-[12%] -bottom-[12%] w-full h-[124%] pointer-events-none will-change-transform"
+        >
+          {/* Fallback image */}
+          <img 
+            src={src} 
+            alt={title} 
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
+              webglActive ? 'opacity-0' : 'opacity-100'
+            }`} 
+            draggable={false}
+          />
+          
+          {/* WebGL Canvas */}
+          <canvas 
+            ref={canvasRef} 
+            className={`absolute inset-0 w-full h-full object-cover z-10 pointer-events-none transition-all duration-700 ease-out group-hover:scale-105 ${
+              webglActive ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        </div>
 
         {/* Gradient dark overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent z-20 pointer-events-none opacity-80 group-hover:opacity-95 transition-opacity duration-300" />

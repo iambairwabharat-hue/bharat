@@ -21,6 +21,7 @@ export default function Home() {
   const galleryInnerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const cardMetricsRef = useRef<{ top: number; height: number }[]>([]);
+  const cardMediaRefs = useRef<(HTMLDivElement | null)[]>([]);
   const stickyHeaderRef = useRef<StickyHeaderRef>(null);
   const isAnimationDoneRef = useRef(false);
   const stickyVisibleRef = useRef(false);
@@ -88,6 +89,10 @@ export default function Home() {
       cardMetricsRef.current = cardRefs.current.map((card) => {
         if (!card) return { top: 0, height: 0 };
         return { top: card.offsetTop, height: card.offsetHeight };
+      });
+      cardMediaRefs.current = cardRefs.current.map((card) => {
+        if (!card) return null;
+        return card.querySelector('.parallax-media') as HTMLDivElement | null;
       });
     };
 
@@ -182,6 +187,14 @@ export default function Home() {
         } else {
           card.style.transform = 'scale(0.85)';
           card.style.opacity = '0.55';
+        }
+
+        // Parallax mask shift for inner media inside card frame
+        const normY = (cardCenter - vh * 0.5) / (vh * 0.7);
+        const parallaxY = -normY * 26; // subtle smooth vertical parallax shift
+        const media = cardMediaRefs.current[i];
+        if (media) {
+          media.style.transform = `translate3d(0, ${parallaxY.toFixed(2)}px, 0)`;
         }
       });
 
