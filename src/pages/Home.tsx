@@ -20,6 +20,7 @@ export default function Home() {
   const blackPanelRef = useRef<HTMLDivElement>(null);
   const galleryInnerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const cardMetricsRef = useRef<{ top: number; height: number }[]>([]);
   const stickyHeaderRef = useRef<StickyHeaderRef>(null);
   const isAnimationDoneRef = useRef(false);
   const stickyVisibleRef = useRef(false);
@@ -82,6 +83,14 @@ export default function Home() {
       );
     };
 
+    const updateMetrics = () => {
+      if (!galleryInnerRef.current) return;
+      cardMetricsRef.current = cardRefs.current.map((card) => {
+        if (!card) return { top: 0, height: 0 };
+        return { top: card.offsetTop, height: card.offsetHeight };
+      });
+    };
+
     // Initial dynamic spacer height
     const calculateHeight = () => {
       vh = window.innerHeight;
@@ -89,6 +98,7 @@ export default function Home() {
         const wrapHeight = getContentHeight();
         const maxScroll = Math.max(0, wrapHeight - vh + 160);
         scrollSpacerRef.current.style.height = `${vh + maxScroll}px`;
+        updateMetrics();
       }
     };
 
@@ -135,13 +145,9 @@ export default function Home() {
         mainCanvas.style.visibility = scrollY > vh ? 'hidden' : 'visible';
       }
 
+      const translate = scrollY > vh ? Math.min(maxScroll, scrollY - vh) : 0;
       if (galleryInnerRef.current) {
-        if (scrollY > vh) {
-          const translate = Math.min(maxScroll, scrollY - vh);
-          galleryInnerRef.current.style.transform = `translateY(-${translate}px)`;
-        } else {
-          galleryInnerRef.current.style.transform = `translateY(0px)`;
-        }
+        galleryInnerRef.current.style.transform = `translateY(-${translate}px)`;
       }
 
       if (galleryInnerRef.current) {
@@ -156,25 +162,26 @@ export default function Home() {
         }
       }
 
-      // Dynamic card scroll scaling animation (safely clamped so cards never collapse to 0)
-      cardRefs.current.forEach((card) => {
+      // Ultra-smooth 60/120FPS continuous cosine bell curve (Zero layout thrashing)
+      const metrics = cardMetricsRef.current;
+      cardRefs.current.forEach((card, i) => {
         if (!card) return;
+        const m = metrics[i];
+        if (!m || m.height === 0) return;
 
-        const rect = card.getBoundingClientRect();
-        const top = rect.top;
-        const bottom = rect.bottom;
+        // Distance of card center from viewport center
+        const cardCenter = m.top - translate + m.height * 0.5;
+        const dist = Math.abs(cardCenter - vh * 0.5) / (vh * 0.65);
 
-        if (bottom > -50 && top < vh + 50) {
-          const enter = Math.min(1, Math.max(0.7, (vh - top) / (vh * 0.45)));
-          const exit = Math.min(1, Math.max(0.7, bottom / (vh * 0.35)));
-          const scale = Math.min(enter, exit);
-          const opacity = Math.min(1, Math.max(0.4, (scale - 0.7) / 0.3 * 1.2));
-
-          card.style.transform = `scale(${scale})`;
-          card.style.opacity = `${opacity}`;
+        if (dist < 1.0) {
+          const wave = Math.cos(dist * (Math.PI * 0.5));
+          const scale = 0.85 + 0.15 * wave;
+          const opacity = 0.55 + 0.45 * wave;
+          card.style.transform = `scale(${scale.toFixed(4)})`;
+          card.style.opacity = `${opacity.toFixed(3)}`;
         } else {
           card.style.transform = 'scale(0.85)';
-          card.style.opacity = '0.5';
+          card.style.opacity = '0.55';
         }
       });
 
