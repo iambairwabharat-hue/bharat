@@ -99,30 +99,8 @@ export default function HeroSection({ onComplete }: HeroSectionProps) {
           .to(img3Ref.current, { opacity: 0, duration: 0.15 }, "+=0.35")
           .to(videoRef.current, { opacity: 1, duration: 0.15 }, "<");
 
-        tl.add("outro", "+=0.25");
-
-        // Text & Metadata fade out smoothly
-        tl.to([iTextRef.current, amTextRef.current], { y: '-100vh', opacity: 0, duration: 0.8, ease: 'power3.inOut' }, "outro")
-          .to(bottomTextRef.current, { y: '100vh', opacity: 0, duration: 0.8, ease: 'power3.inOut' }, "outro+=0.1")
-          .to([metadataRef.current, scrollCueRef.current], { opacity: 0, duration: 0.4 }, "outro");
-
-        // Image expands perfectly to fullscreen
-        tl.to(imageContainerRef.current, {
-          width: '100vw',
-          height: '100vh',
-          left: '50vw',
-          top: '50vh',
-          xPercent: -50,
-          yPercent: -50,
-          borderRadius: '0px',
-          duration: 1.1,
-          ease: 'power3.inOut'
-        }, "outro+=0.15");
-
-        // Pull the black panel up
-        tl.to('#black-panel', { marginTop: '-23vh', duration: 0.5, ease: 'power2.out' }, ">");
-        // Fade in sticky header
-        tl.to('#sticky-header', { opacity: 1, duration: 0.5, ease: 'power2.out' }, "<");
+        // Intro completes smoothly with hero text and video visible
+        tl.to({}, { duration: 0.3 });
       }
     });
 
