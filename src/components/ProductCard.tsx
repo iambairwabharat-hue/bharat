@@ -215,15 +215,21 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
 
         rafRef.current = requestAnimationFrame(render);
       };
-      
+
+      const handleContextLost = (e: Event) => {
+        e.preventDefault();
+        setWebglActive(false);
+      };
+      canvas.addEventListener('webglcontextlost', handleContextLost);
+
       rafRef.current = requestAnimationFrame(render);
 
       return () => {
+        canvas.removeEventListener('webglcontextlost', handleContextLost);
         observer.disconnect();
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
         if (rendererRef.current) {
           rendererRef.current.dispose();
-          rendererRef.current.forceContextLoss();
         }
         geometry.dispose();
       };
@@ -266,7 +272,7 @@ const ProductCard = forwardRef<HTMLDivElement, ProductCardProps>(
         }}
         data-cursor="VIEW +"
         className={`bp-card group relative w-full overflow-hidden cursor-pointer select-none border border-white/10 rounded-sm bg-[#0a0a0f] ${className}`}
-        style={{ ...style, transform: 'scale(0)' }}
+        style={{ ...style }}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onClick={handleClick}

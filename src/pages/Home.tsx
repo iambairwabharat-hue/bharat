@@ -156,33 +156,9 @@ export default function Home() {
         }
       }
 
-      // Card scaling & zero-state enforcement
-      cardRefs.current.forEach((card) => {
-        if (!card) return;
-
-        if (scrollY <= vh * 0.25) {
-          // Zero state on top/hero scroll to prevent spill lines
-          card.style.transform = 'scale(0)';
-          card.style.opacity = '0';
-        } else {
-          const rect = card.getBoundingClientRect();
-          const top = rect.top;
-          const bottom = rect.bottom;
-          
-          let scale = 0;
-          let opacity = 0;
-
-          if (bottom > 0 && top < vh) {
-            const enter = Math.min(1, (vh - top) / (vh * 0.55));
-            const exit = Math.min(1, bottom / (vh * 0.35));
-            scale = Math.min(enter, exit);
-            opacity = Math.min(1, scale * 1.5);
-          }
-          
-          card.style.transform = `scale(${scale})`;
-          card.style.opacity = `${opacity}`;
-        }
-      });
+      if (blackPanelRef.current) {
+        blackPanelRef.current.style.visibility = scrollY < 20 ? 'hidden' : 'visible';
+      }
 
       rafId = requestAnimationFrame(updateGallery);
     };
