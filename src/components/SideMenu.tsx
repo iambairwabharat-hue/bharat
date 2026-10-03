@@ -12,6 +12,9 @@ const MENU_LINKS = [
   { name: 'SOCIAL MEDIA', href: '/social.html' },
   { name: 'WEB SHOWCASE', href: '/web' },
   { name: '3D EXPERIENCE', href: '/preview-3d' },
+  { name: 'ABOUT & SKILLS', href: '/#about-section' },
+  { name: 'EXPERIENCE', href: '/#experience-section' },
+  { name: 'CONTACT', href: 'mailto:iambairwabharat@gmail.com' },
 ];
 
 export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
